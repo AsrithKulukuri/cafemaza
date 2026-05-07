@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 const menuItemSchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true },
-        category: { type: String, required: true, trim: true },
+        category: { type: String, trim: true },
+        categories: { type: [String], default: [] },
         price: { type: Number, min: 0 },
         variants: [
             {
@@ -11,6 +12,7 @@ const menuItemSchema = new mongoose.Schema(
                 price: { type: Number, required: true, min: 0 },
             },
         ],
+        description: { type: String, default: "" },
         image: { type: String, default: "" },
         isVeg: { type: Boolean, default: false },
         isPopular: { type: Boolean, default: false },
@@ -22,7 +24,7 @@ const menuItemSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-menuItemSchema.index({ category: 1, createdAt: -1 });
+menuItemSchema.index({ category: 1, categories: 1, createdAt: -1 });
 menuItemSchema.index({ isPopular: 1, isBestSeller: 1, createdAt: -1 });
 menuItemSchema.index({ isSoldOut: 1 });
 

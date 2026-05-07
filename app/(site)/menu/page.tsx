@@ -13,9 +13,11 @@ import { apiFetch } from "@/lib/api";
 type BackendMenuItem = {
     _id: string;
     name: string;
-    category: string;
-    price: number;
+    category?: string;
+    categories?: string[];
+    price?: number;
     variants?: { name: string; price: number }[];
+    description?: string;
     image?: string;
     isVeg?: boolean;
     isPopular?: boolean;
@@ -59,40 +61,44 @@ function mapBackendToCategories(items: BackendMenuItem[]): MenuCategoryView[] {
     const grouped = new Map<string, Dish[]>();
 
     items.forEach((item) => {
-        let cat = (item.category || "uncategorized").toLowerCase().trim();
-
-        // Handle variations in category names from backend
-        if (cat.includes("tandoori")) cat = "tandoori";
-        else if (cat.includes("chinese")) cat = "chinese";
-        else if (cat.includes("main course")) cat = "main-course";
-        else if (cat.includes("soup") || cat.includes("shorba")) cat = "soups";
-        else if (cat.includes("biryani")) cat = "biryani";
-        else if (cat.includes("rice") || cat.includes("noodles")) cat = "rice-noodles";
-        else if (cat.includes("bread") || cat.includes("roti") || cat.includes("naan") || cat.includes("kulcha")) cat = "breads";
-        else if (cat.includes("sizzler")) cat = "sizzlers";
-        else if (cat.includes("dessert") || cat.includes("sweet")) cat = "desserts";
-        else if (cat.includes("drink") || cat.includes("mocktail") || cat.includes("lassi") || cat.includes("beverage")) cat = "drinks";
-
-        const key = cat.replace(/\s+/g, "-");
-        const current = grouped.get(key) ?? [];
+        const sourceCategories = Array.isArray(item.categories) && item.categories.length > 0 ? item.categories : item.category ? [item.category] : ["uncategorized"];
         const rawImage = String(item.image || "").trim();
         const image = rawImage && !rawImage.includes("images.pexels.com")
             ? rawImage
-            : getCategoryFallbackImage(key, item.name);
+            : getCategoryFallbackImage(sourceCategories[0] || "uncategorized", item.name);
 
-        current.push({
-            _id: item._id,
-            name: item.name,
-            price: item.price,
-            variants: item.variants,
-            image,
-            isVeg: item.isVeg,
-            isBestSeller: item.isBestSeller ?? item.isPopular,
-            isSpecial: item.isSpecial,
-            isSoldOut: item.isSoldOut,
-            tags: item.tags,
+        sourceCategories.forEach((sourceCategory) => {
+            let cat = String(sourceCategory || "uncategorized").toLowerCase().trim();
+
+            // Handle variations in category names from backend
+            if (cat.includes("tandoori")) cat = "tandoori";
+            else if (cat.includes("chinese")) cat = "chinese";
+            else if (cat.includes("main course")) cat = "main-course";
+            else if (cat.includes("soup") || cat.includes("shorba")) cat = "soups";
+            else if (cat.includes("biryani")) cat = "biryani";
+            else if (cat.includes("rice") || cat.includes("noodles")) cat = "rice-noodles";
+            else if (cat.includes("bread") || cat.includes("roti") || cat.includes("naan") || cat.includes("kulcha")) cat = "breads";
+            else if (cat.includes("sizzler")) cat = "sizzlers";
+            else if (cat.includes("dessert") || cat.includes("sweet")) cat = "desserts";
+            else if (cat.includes("drink") || cat.includes("mocktail") || cat.includes("lassi") || cat.includes("beverage")) cat = "drinks";
+
+            const key = cat.replace(/\s+/g, "-");
+            const current = grouped.get(key) ?? [];
+
+            current.push({
+                _id: item._id,
+                name: item.name,
+                price: item.price,
+                variants: item.variants,
+                image,
+                isVeg: item.isVeg,
+                isBestSeller: item.isBestSeller ?? item.isPopular,
+                isSpecial: item.isSpecial,
+                isSoldOut: item.isSoldOut,
+                tags: item.tags,
+            });
+            grouped.set(key, current);
         });
-        grouped.set(key, current);
     });
 
     const categoryOrder = [
@@ -165,7 +171,7 @@ export default function MenuPage() {
 
         async function loadMenu() {
             try {
-                const items = await apiFetch<BackendMenuItem[]>("/api/menu");
+                const items = await apiFetch<BackendMenuItem[]>("/api/menu", { cache: "no-store" });
 
                 if (!items.length || cancelled) {
                     return;
@@ -260,8 +266,8 @@ export default function MenuPage() {
                                 key={category.id}
                                 onClick={() => scrollToCategory(category.id)}
                                 className={`px-4 py-2 rounded-full text-sm flex-shrink-0 border transition-all active:scale-95 ${active === category.id
-                                        ? "bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/20"
-                                        : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                                    ? "bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/20"
+                                    : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500"
                                     }`}
                             >
                                 {category.label}

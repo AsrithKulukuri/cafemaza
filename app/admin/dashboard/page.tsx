@@ -16,12 +16,16 @@ type TabType = "analytics" | "orders" | "menu" | "deliveryPartners" | "coupons" 
 type AdminMenuItem = {
     _id: string;
     name: string;
-    category: string;
-    price: number;
+    category?: string;
+    categories?: string[];
+    price?: number;
+    variants?: { name: string; price: number }[];
+    description?: string;
     image: string;
     isVeg: boolean;
     isPopular?: boolean;
     isBestSeller?: boolean;
+    isSpecial?: boolean;
     isSoldOut?: boolean;
     tags?: string[];
 };
@@ -135,20 +139,37 @@ function formatOrderDisplayId(orderId: string) {
 
 export default function AdminDashboard() {
     const router = useRouter();
+    const menuCategoryOptions = [
+        "Recommended",
+        "Soups",
+        "Tandoori",
+        "Chinese",
+        "Main Course",
+        "Biryani",
+        "Rice & Noodles",
+        "Breads",
+        "Sizzlers",
+        "Desserts",
+        "Drinks",
+    ];
     const [adminInfo, setAdminInfo] = useState<{ adminEmail: string; name: string; email: string } | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>("analytics");
     const [newMenuItem, setNewMenuItem] = useState({
         name: "",
-        category: "soups",
+        categories: ["Recommended"],
         price: "",
+        variants: [] as { name: string; price: string }[],
+        description: "",
         image: "",
         isVeg: true,
         isPopular: false,
         isBestSeller: false,
+        isSpecial: false,
         isSoldOut: false,
         tagsText: "",
     });
     const [showNewMenuForm, setShowNewMenuForm] = useState(false);
+    const [editingMenuItemId, setEditingMenuItemId] = useState<string | null>(null);
 
     function getSafeMenuImageSrc(src: string | undefined) {
         if (!src) {
@@ -260,7 +281,7 @@ export default function AdminDashboard() {
                 const [analyticsRes, ordersRes, menuRes, reservationsRes, screeningRes, deliveryPartnersRes, couponsRes, couponAnalyticsRes, promoBannersRes] = await Promise.all([
                     apiFetch<{ totalOrders: number; revenue: number; activeOrders: number; reservations: number; dailyHistory?: DailyHistoryItem[] }>("/api/admin/analytics?days=90", { token }),
                     apiFetch<Array<{ _id: string; totalAmount: number; status: string; createdAt: string; userId?: { name?: string }; items: Array<{ quantity: number; menuItemId?: { name?: string; price?: number } }> }>>("/api/orders?days=90", { token }),
-                    apiFetch<AdminMenuItem[]>("/api/menu"),
+                    apiFetch<AdminMenuItem[]>("/api/menu", { token, cache: "no-store" }),
                     apiFetch<typeof mockReservations>("/api/reservations", { token }),
                     apiFetch<ScreeningBooking[]>("/api/screening", { token }),
                     apiFetch<DeliveryPartner[]>("/api/admin/delivery-partners", { token }),
@@ -332,9 +353,18 @@ export default function AdminDashboard() {
     };
 
     const handleAddMenuItem = async () => {
-        if (!newMenuItem.name || !newMenuItem.price || !newMenuItem.image) {
-            setMenuError("Name, price and image are required");
+        const hasVariants = newMenuItem.variants.length > 0;
+        if (!newMenuItem.name || !newMenuItem.image || newMenuItem.categories.length === 0 || (!hasVariants && !newMenuItem.price)) {
+            setMenuError("Name, categories, price or variants, and image are required");
             return;
+        }
+
+        if (hasVariants) {
+            const invalidVariant = newMenuItem.variants.some((variant) => !variant.name.trim() || !variant.price.trim() || Number.isNaN(Number(variant.price)) || Number(variant.price) < 0);
+            if (invalidVariant) {
+                setMenuError("All variants require a valid name and price");
+                return;
+            }
         }
 
         const token = getAuthToken();
@@ -352,41 +382,83 @@ export default function AdminDashboard() {
                 .map((tag) => tag.trim().toLowerCase())
                 .filter(Boolean);
             const image = normalizeMenuImageInput(newMenuItem.image);
+            const payload = {
+                name: newMenuItem.name,
+                categories: newMenuItem.categories,
+                category: newMenuItem.categories[0] || "",
+                price: newMenuItem.price ? Number(newMenuItem.price) : undefined,
+                variants: newMenuItem.variants.length > 0
+                    ? newMenuItem.variants.map((variant) => ({
+                        name: variant.name.trim(),
+                        price: Number(variant.price),
+                    }))
+                    : [],
+                description: newMenuItem.description.trim(),
+                image,
+                isVeg: newMenuItem.isVeg,
+                isPopular: newMenuItem.isPopular,
+                isBestSeller: newMenuItem.isBestSeller,
+                isSpecial: newMenuItem.isSpecial,
+                isSoldOut: newMenuItem.isSoldOut,
+                tags,
+            };
 
-            const created = await apiFetch<AdminMenuItem>("/api/menu", {
-                method: "POST",
-                token,
-                body: JSON.stringify({
-                    name: newMenuItem.name,
-                    category: newMenuItem.category,
-                    price: Number(newMenuItem.price),
-                    image,
-                    isVeg: newMenuItem.isVeg,
-                    isPopular: newMenuItem.isPopular,
-                    isBestSeller: newMenuItem.isBestSeller,
-                    isSoldOut: newMenuItem.isSoldOut,
-                    tags,
-                }),
-            });
+            if (editingMenuItemId) {
+                const updated = await apiFetch<AdminMenuItem>(`/api/menu/${editingMenuItemId}`, {
+                    method: "PUT",
+                    token,
+                    body: JSON.stringify(payload),
+                });
+                setMenuItems((prev) => prev.map((item) => (item._id === editingMenuItemId ? updated : item)));
+            } else {
+                const created = await apiFetch<AdminMenuItem>("/api/menu", {
+                    method: "POST",
+                    token,
+                    body: JSON.stringify(payload),
+                });
+                setMenuItems((prev) => [created, ...prev]);
+            }
 
-            setMenuItems((prev) => [created, ...prev]);
             setNewMenuItem({
                 name: "",
-                category: "soups",
+                categories: ["Recommended"],
                 price: "",
+                variants: [],
+                description: "",
                 image: "",
                 isVeg: true,
                 isPopular: false,
                 isBestSeller: false,
+                isSpecial: false,
                 isSoldOut: false,
                 tagsText: "",
             });
             setShowNewMenuForm(false);
+            setEditingMenuItemId(null);
         } catch (error) {
-            setMenuError(error instanceof Error ? error.message : "Failed to create menu item");
+            setMenuError(error instanceof Error ? error.message : "Failed to save menu item");
         } finally {
             setMenuSaving(false);
         }
+    };
+
+    const handleEditMenuItem = (item: AdminMenuItem) => {
+        setEditingMenuItemId(item._id);
+        setShowNewMenuForm(true);
+        setNewMenuItem({
+            name: item.name || "",
+            categories: item.categories && item.categories.length > 0 ? item.categories : item.category ? [item.category] : ["Recommended"],
+            price: item.price != null ? String(item.price) : "",
+            variants: item.variants ? item.variants.map((variant) => ({ name: variant.name, price: String(variant.price) })) : [],
+            description: item.description || "",
+            image: item.image || "",
+            isVeg: Boolean(item.isVeg),
+            isPopular: Boolean(item.isPopular),
+            isBestSeller: Boolean(item.isBestSeller),
+            isSpecial: Boolean(item.isSpecial),
+            isSoldOut: Boolean(item.isSoldOut),
+            tagsText: (item.tags || []).join(", "),
+        });
     };
 
     const updateOrderStatus = async (orderId: string, status: AdminUpdatableOrderStatus) => {
@@ -1029,7 +1101,7 @@ export default function AdminDashboard() {
                                 animate={{ opacity: 1, height: "auto" }}
                                 className="glass-card rounded-2xl border border-[#CFAF63]/25 p-6"
                             >
-                                <h3 className="font-[var(--font-heading)] text-lg text-[#F5F5F5] mb-4">Add New Menu Item</h3>
+                                <h3 className="font-[var(--font-heading)] text-lg text-[#F5F5F5] mb-4">{editingMenuItemId ? "Edit Menu Item" : "Add New Menu Item"}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input
                                         type="text"
@@ -1038,31 +1110,100 @@ export default function AdminDashboard() {
                                         onChange={(e) => setNewMenuItem({ ...newMenuItem, name: e.target.value })}
                                         className="rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none"
                                     />
-                                    <select
-                                        value={newMenuItem.category}
-                                        onChange={(e) => setNewMenuItem({ ...newMenuItem, category: e.target.value })}
-                                        className="rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] focus:outline-none"
-                                    >
-                                        <option value="soups">Soups</option>
-                                        <option value="starters">Chinese Starters</option>
-                                        <option value="tandoori">Tandoori</option>
-                                        <option value="main">Main Course</option>
-                                        <option value="biryani">Biryani</option>
-                                        <option value="desserts">Desserts</option>
-                                    </select>
-                                    <input
-                                        type="number"
-                                        placeholder="Price (₹)"
-                                        value={newMenuItem.price}
-                                        onChange={(e) => setNewMenuItem({ ...newMenuItem, price: e.target.value })}
-                                        className="rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none"
-                                    />
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-xs uppercase tracking-[0.16em] text-[#999]">Categories</label>
+                                        <select
+                                            multiple
+                                            value={newMenuItem.categories}
+                                            onChange={(e) => setNewMenuItem({
+                                                ...newMenuItem,
+                                                categories: Array.from(e.target.selectedOptions, (option) => option.value),
+                                            })}
+                                            className="h-40 rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] focus:outline-none"
+                                        >
+                                            {menuCategoryOptions.map((category) => (
+                                                <option key={category} value={category}>
+                                                    {category}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="number"
+                                            placeholder="Base Price (₹)"
+                                            value={newMenuItem.price}
+                                            onChange={(e) => setNewMenuItem({ ...newMenuItem, price: e.target.value })}
+                                            className="rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none"
+                                        />
+                                        <div className="rounded-2xl border border-[#CFAF63]/25 bg-[#101010] p-3">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <p className="text-sm text-[#999]">Variants (optional)</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setNewMenuItem((prev) => ({
+                                                        ...prev,
+                                                        variants: [...prev.variants, { name: "", price: "" }],
+                                                    }))}
+                                                    className="rounded-full border border-[#CFAF63]/30 px-3 py-1 text-xs text-[#CFAF63] hover:bg-[#CFAF63]/10"
+                                                >
+                                                    Add Variant
+                                                </button>
+                                            </div>
+                                            {newMenuItem.variants.length === 0 ? (
+                                                <p className="mt-3 text-xs text-[#777]">Add variants to create multi-option menu items, otherwise the base price will be used.</p>
+                                            ) : (
+                                                <div className="mt-3 space-y-2">
+                                                    {newMenuItem.variants.map((variant, idx) => (
+                                                        <div key={`${variant.name}-${idx}`} className="grid grid-cols-[1fr_120px_auto] gap-2">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Variant name"
+                                                                value={variant.name}
+                                                                onChange={(e) => setNewMenuItem((prev) => ({
+                                                                    ...prev,
+                                                                    variants: prev.variants.map((item, index) => index === idx ? { ...item, name: e.target.value } : item),
+                                                                }))}
+                                                                className="rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none"
+                                                            />
+                                                            <input
+                                                                type="number"
+                                                                placeholder="Price"
+                                                                value={variant.price}
+                                                                onChange={(e) => setNewMenuItem((prev) => ({
+                                                                    ...prev,
+                                                                    variants: prev.variants.map((item, index) => index === idx ? { ...item, price: e.target.value } : item),
+                                                                }))}
+                                                                className="rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setNewMenuItem((prev) => ({
+                                                                    ...prev,
+                                                                    variants: prev.variants.filter((_, index) => index !== idx),
+                                                                }))}
+                                                                className="rounded-full bg-rose-500/15 px-3 py-3 text-sm text-rose-300 hover:bg-rose-500/25"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                     <input
                                         type="text"
                                         placeholder="Image URL"
                                         value={newMenuItem.image}
                                         onChange={(e) => setNewMenuItem({ ...newMenuItem, image: e.target.value })}
                                         className="rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none"
+                                    />
+                                    <textarea
+                                        placeholder="Description"
+                                        value={newMenuItem.description}
+                                        onChange={(e) => setNewMenuItem({ ...newMenuItem, description: e.target.value })}
+                                        className="min-h-[120px] resize-none rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none md:col-span-2"
                                     />
                                     <label className="rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5]">
                                         <span className="text-xs text-[#999]">Upload dish photo (Supabase)</span>
@@ -1106,6 +1247,15 @@ export default function AdminDashboard() {
                                     <label className="flex items-center gap-2 px-4 py-3">
                                         <input
                                             type="checkbox"
+                                            checked={newMenuItem.isSpecial}
+                                            onChange={(e) => setNewMenuItem({ ...newMenuItem, isSpecial: e.target.checked })}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="text-[#F5F5F5]">Recommended / Special Item</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 px-4 py-3">
+                                        <input
+                                            type="checkbox"
                                             checked={newMenuItem.isSoldOut}
                                             onChange={(e) => setNewMenuItem({ ...newMenuItem, isSoldOut: e.target.checked })}
                                             className="w-4 h-4"
@@ -1129,7 +1279,10 @@ export default function AdminDashboard() {
                                         {menuSaving ? "Saving..." : "Save Item"}
                                     </button>
                                     <button
-                                        onClick={() => setShowNewMenuForm(false)}
+                                        onClick={() => {
+                                            setShowNewMenuForm(false);
+                                            setEditingMenuItemId(null);
+                                        }}
                                         className="px-6 py-2 rounded-lg border border-[#CFAF63]/25 text-[#F5F5F5] hover:bg-[#1A1A1A] transition text-sm"
                                     >
                                         Cancel
@@ -1147,8 +1300,8 @@ export default function AdminDashboard() {
                                 <thead>
                                     <tr className="border-b border-[#333]">
                                         <th className="py-2 px-3 text-left text-[#999]">Dish</th>
-                                        <th className="py-2 px-3 text-left text-[#999]">Category</th>
-                                        <th className="py-2 px-3 text-left text-[#999]">Price</th>
+                                        <th className="py-2 px-3 text-left text-[#999]">Categories</th>
+                                        <th className="py-2 px-3 text-left text-[#999]">Price / Variants</th>
                                         <th className="py-2 px-3 text-left text-[#999]">Tags</th>
                                         <th className="py-2 px-3 text-left text-[#999]">Status</th>
                                         <th className="py-2 px-3 text-right text-[#999]">Actions</th>
@@ -1175,12 +1328,25 @@ export default function AdminDashboard() {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-3 px-3 text-[#CCC]">{item.category}</td>
-                                            <td className="py-3 px-3 text-[#CFAF63]">₹{item.price}</td>
+                                            <td className="py-3 px-3 text-[#CCC]">{(item.categories || [item.category || ""]).filter(Boolean).join(", ")}</td>
+                                            <td className="py-3 px-3 text-[#CFAF63]">
+                                                {item.variants && item.variants.length > 0 ? (
+                                                    <div className="space-y-1">
+                                                        {item.variants.map((variant, idx) => (
+                                                            <div key={`${item._id}-variant-${idx}`} className="text-xs text-[#F5F5F5]">
+                                                                {variant.name}: ₹{variant.price}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    `₹${item.price ?? 0}`
+                                                )}
+                                            </td>
                                             <td className="py-3 px-3">
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {item.isPopular ? <span className="rounded-full bg-[#00D98E]/20 px-2 py-0.5 text-xs text-[#4FE0A6]">Home</span> : null}
                                                     {item.isBestSeller ? <span className="rounded-full bg-[#FF6A00]/20 px-2 py-0.5 text-xs text-[#FF6A00]">Most Selling</span> : null}
+                                                    {item.isSpecial ? <span className="rounded-full bg-[#CFAF63]/20 px-2 py-0.5 text-xs text-[#CFAF63]">Special</span> : null}
                                                     {item.isSoldOut ? <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-xs text-rose-300">Sold Out</span> : null}
                                                     {(item.tags || []).map((tag, tagIndex) => (
                                                         <span key={`${item._id || item.name}-${tag}-${tagIndex}`} className="rounded-full bg-[#3B82F6]/20 px-2 py-0.5 text-xs text-[#6CA3EA]">{tag}</span>
@@ -1222,9 +1388,15 @@ export default function AdminDashboard() {
                                                 </label>
                                             </td>
                                             <td className="py-3 px-3 text-right">
-                                                <div className="flex justify-end gap-2">
+                                                <div className="flex justify-end gap-2 flex-wrap">
                                                     <button
-                                                        onClick={() => editMenuItemPrice(item._id, item.price)}
+                                                        onClick={() => handleEditMenuItem(item)}
+                                                        className="rounded border border-[#CFAF63]/40 px-2 py-1 text-xs text-[#CFAF63] hover:bg-[#CFAF63]/10"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => editMenuItemPrice(item._id, item.price ?? 0)}
                                                         className="p-1 rounded hover:bg-[#CFAF63]/20 transition"
                                                         title="Edit Price"
                                                     >

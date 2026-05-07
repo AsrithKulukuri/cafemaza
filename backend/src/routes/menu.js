@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/", async (req, res, next) => {
     try {
         const items = await MenuItem.find()
-            .select("name category price variants image isVeg isPopular isBestSeller isSpecial isSoldOut tags createdAt")
+            .select("name category categories price variants description image isVeg isPopular isBestSeller isSpecial isSoldOut tags createdAt")
             .sort({ createdAt: 1, _id: 1 })
             .lean();
         res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
@@ -24,8 +24,10 @@ router.post("/", auth, permit("admin"), async (req, res, next) => {
         const {
             name,
             category,
+            categories,
             price,
             variants,
+            description,
             image,
             isVeg,
             isPopular,
@@ -35,8 +37,14 @@ router.post("/", auth, permit("admin"), async (req, res, next) => {
             tags,
         } = req.body;
 
-        if (!name || !category) {
-            return res.status(400).json({ message: "name and category are required" });
+        const normalizedCategories = Array.isArray(categories)
+            ? categories.map((cat) => String(cat).trim()).filter(Boolean)
+            : typeof category === "string"
+                ? [category.trim()].filter(Boolean)
+                : [];
+
+        if (!name || normalizedCategories.length === 0) {
+            return res.status(400).json({ message: "name and at least one category are required" });
         }
 
         const normalizedTags = Array.isArray(tags)
@@ -47,9 +55,11 @@ router.post("/", auth, permit("admin"), async (req, res, next) => {
 
         const created = await MenuItem.create({
             name,
-            category,
+            category: normalizedCategories[0] || String(category || "").trim(),
+            categories: normalizedCategories,
             price,
             variants: Array.isArray(variants) ? variants : [],
+            description: String(description || "").trim(),
             image,
             isVeg: Boolean(isVeg),
             isPopular: Boolean(isPopular),
@@ -66,7 +76,21 @@ router.post("/", auth, permit("admin"), async (req, res, next) => {
 
 router.put("/:id", auth, permit("admin"), async (req, res, next) => {
     try {
-        const updated = await MenuItem.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const updatedPayload = { ...req.body };
+
+        if (updatedPayload.categories && !Array.isArray(updatedPayload.categories)) {
+            updatedPayload.categories = String(updatedPayload.categories).split(",").map((cat) => cat.trim()).filter(Boolean);
+        }
+
+        if (!updatedPayload.categories && updatedPayload.category) {
+            updatedPayload.categories = [String(updatedPayload.category).trim()].filter(Boolean);
+        }
+
+        if (updatedPayload.categories && Array.isArray(updatedPayload.categories) && updatedPayload.categories.length > 0) {
+            updatedPayload.category = String(updatedPayload.categories[0]).trim();
+        }
+
+        const updated = await MenuItem.findByIdAndUpdate(req.params.id, updatedPayload, { new: true, runValidators: true });
 
         if (!updated) {
             return res.status(404).json({ message: "Menu item not found" });
