@@ -1,0 +1,46 @@
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.56.1:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 3.2s
+○ Compiling /order-online ...
+ HEAD / 200 in 35.5s (compile: 33.7s, render: 1877ms)
+ HEAD /order-online 200 in 35.3s (compile: 33.4s, render: 1906ms)
+ HEAD /contact 200 in 35.3s (compile: 33.4s, render: 1908ms)
+ HEAD /menu 200 in 35.5s (compile: 33.6s, render: 1918ms)
+○ Compiling /screening ...
+ HEAD /gallery 200 in 4.5s (compile: 3.7s, render: 823ms)
+ HEAD /live-grill 200 in 4.5s (compile: 3.7s, render: 832ms)
+ HEAD /screening 200 in 4.5s (compile: 3.6s, render: 840ms)
+ HEAD /reserve-table 200 in 4.5s (compile: 3.7s, render: 848ms)
+ HEAD /gallery 200 in 1449ms (compile: 574ms, render: 876ms)
+○ Compiling /order-online ...
+ HEAD /admin/dashboard 200 in 15.7s (compile: 14.4s, render: 1319ms)
+ HEAD /contact 200 in 15.7s (compile: 14.4s, render: 1331ms)
+ HEAD /order-online 200 in 15.7s (compile: 14.4s, render: 1339ms)
+ HEAD /staff/dashboard 200 in 1773ms (compile: 1534ms, render: 239ms)
+○ Compiling / ...
+ GET / 200 in 5.1s (compile: 4.3s, render: 873ms)
+ GET /menu 200 in 2.4s (compile: 2.2s, render: 145ms)
+○ Compiling /checkout ...
+ GET /checkout 200 in 3.6s (compile: 3.5s, render: 110ms)
+ GET / 200 in 164ms (compile: 68ms, render: 95ms)
+ GET /menu 200 in 129ms (compile: 51ms, render: 78ms)
+ GET /checkout 200 in 142ms (compile: 43ms, render: 99ms)
+ GET /checkout 200 in 1510ms (compile: 18ms, render: 1493ms)
+ GET /menu 200 in 490ms (compile: 151ms, render: 339ms)
+ GET /menu 200 in 72ms (compile: 3ms, render: 69ms)
+ GET /menu 200 in 73ms (compile: 5ms, render: 69ms)
+ GET /menu 200 in 79ms (compile: 10ms, render: 69ms)
+ GET /menu 200 in 71ms (compile: 7ms, render: 64ms)
+ GET /menu 200 in 113ms (compile: 6ms, render: 107ms)
+ GET /menu 200 in 259ms (compile: 78ms, render: 181ms)
+ GET /menu 200 in 75ms (compile: 3ms, render: 72ms)
+ GET /menu 200 in 82ms (compile: 10ms, render: 73ms)
+ GET /menu 200 in 78ms (compile: 6ms, render: 71ms)
+ GET /menu 200 in 352ms (compile: 80ms, render: 272ms)
+ GET /menu 200 in 61ms (compile: 3ms, render: 58ms)
+ GET /menu 200 in 68ms (compile: 4ms, render: 64ms)
+ GET /menu 200 in 89ms (compile: 12ms, render: 76ms)

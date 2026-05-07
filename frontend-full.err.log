@@ -1,0 +1,84 @@
+⚠ ./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+
+./app/(site)/gallery/page.tsx
+Attempted import error: 'galleryImages' is not exported from '@/data/mockData' (imported as 'galleryImages').
+
+Import trace for requested module:
+./app/(site)/gallery/page.tsx
+⨯ TypeError: Cannot read properties of undefined (reading 'map')
+    at GalleryPage (app\(site)\gallery\page.tsx:28:18)
+  26 |
+  27 |             <div className="mt-10 columns-1 gap-5 space-y-5 md:columns-2 lg:columns-3">
+> 28 |                 {galleryImages.map((image, idx) => (
+     |                  ^
+  29 |                     <figure key={image.alt + idx} className="glass-card break-inside-avoid overflow-hidden rounded-2xl border border-[#CFAF63]/20">
+  30 |                         <button onClick={() => setActiveIndex(idx)} className="relative block h-48 w-full overflow-hidden">
+  31 |                             <Image src={image.src} alt={image.alt} fill className="object-cover transition duration-500 hover:scale-110" /> {
+  digest: '4152195996'
+}
+(node:33032) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)

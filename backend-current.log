@@ -1,0 +1,15 @@
+Backend server started { port: 5000, env: 'development' }
+[0mGET /api/menu [32m200[0m 30.434 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 17.901 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 7.560 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 11.529 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 6.541 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 8.095 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 8.110 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 12.418 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 9.513 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 8.380 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 6.376 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 8.842 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 5.362 ms - 50355[0m
+[0mGET /api/menu [32m200[0m 4.315 ms - 50355[0m

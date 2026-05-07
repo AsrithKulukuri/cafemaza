@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cafemaza.vercel.app/sitemap.xml
+
+# Block internal portals from indexing
+Disallow: /admin
+Disallow: /admin-login
+Disallow: /staff
+Disallow: /staff-login
+Disallow: /delivery
+Disallow: /delivery-login
+Disallow: /portals
+Disallow: /checkout

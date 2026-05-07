@@ -1,0 +1,21 @@
+
+> cafe-maza-web@0.1.0 dev
+> next dev --turbopack
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.56.1:3000
+- Environments: .env.local
+
+✓ Starting...
+Creating turbopack project {
+  dir: 'C:\\Users\\asrit\\Aasrith_works\\cafe maza\\cafe-maza-web',
+  testMode: true
+}
+✓ Ready in 1843ms
+ GET /signup?oauth=success 200 in 2.6s (compile: 2.1s, render: 451ms)
+ POST /api/auth/otp/send 200 in 1177ms (compile: 490ms, render: 687ms)
+ GET /api/auth/profile 200 in 767ms (compile: 96ms, render: 672ms)
+ POST /api/auth/profile 200 in 450ms (compile: 6ms, render: 444ms)
+ POST /api/auth/otp/send 200 in 755ms (compile: 4ms, render: 751ms)
+ GET /signup?oauth=success 200 in 78ms (compile: 8ms, render: 69ms)

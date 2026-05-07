@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#0B0B0B"/>
+  <!-- Grill grate lines -->
+  <line x1="36" y1="80" x2="156" y2="80" stroke="#CFAF63" stroke-width="4" stroke-linecap="round"/>
+  <line x1="36" y1="96" x2="156" y2="96" stroke="#CFAF63" stroke-width="4" stroke-linecap="round"/>
+  <line x1="36" y1="112" x2="156" y2="112" stroke="#CFAF63" stroke-width="4" stroke-linecap="round"/>
+  <line x1="60" y1="68" x2="60" y2="124" stroke="#CFAF63" stroke-width="4" stroke-linecap="round"/>
+  <line x1="84" y1="68" x2="84" y2="124" stroke="#CFAF63" stroke-width="4" stroke-linecap="round"/>
+  <line x1="108" y1="68" x2="108" y2="124" stroke="#CFAF63" stroke-width="4" stroke-linecap="round"/>
+  <line x1="132" y1="68" x2="132" y2="124" stroke="#CFAF63" stroke-width="4" stroke-linecap="round"/>
+  <!-- Flame -->
+  <path d="M 85 58 Q 90 40 96 52 Q 102 38 107 58 Q 112 46 108 62 Q 104 70 96 66 Q 88 70 84 62 Q 80 46 85 58 Z" fill="#FF6A00" opacity="0.9"/>
+  <path d="M 90 60 Q 93 50 96 56 Q 99 50 102 60 Q 104 54 102 64 Q 99 68 96 67 Q 93 68 90 64 Q 88 54 90 60 Z" fill="#CFAF63"/>
+  <!-- Stand legs -->
+  <line x1="60" y1="122" x2="50" y2="152" stroke="#CFAF63" stroke-width="5" stroke-linecap="round"/>
+  <line x1="132" y1="122" x2="142" y2="152" stroke="#CFAF63" stroke-width="5" stroke-linecap="round"/>
+  <line x1="96" y1="122" x2="96" y2="156" stroke="#CFAF63" stroke-width="5" stroke-linecap="round"/>
+  <!-- Base bar -->
+  <line x1="44" y1="152" x2="148" y2="152" stroke="#CFAF63" stroke-width="5" stroke-linecap="round"/>
+  <!-- Shimmer -->
+  <rect x="0" y="0" width="192" height="192" rx="32" fill="url(#shimmer)" opacity="0.06"/>
+  <defs>
+    <linearGradient id="shimmer" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="white"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </linearGradient>
+  </defs>
+</svg>
