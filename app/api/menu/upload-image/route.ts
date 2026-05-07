@@ -46,6 +46,13 @@ function productionStorageError(message: string) {
     );
 }
 
+function isCompactJwt(value: string | undefined) {
+    if (!value) return false;
+    const token = value.trim();
+    const parts = token.split(".");
+    return parts.length === 3 && parts.every((part) => /^[A-Za-z0-9_-]+$/.test(part));
+}
+
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
@@ -64,8 +71,8 @@ export async function POST(request: NextRequest) {
         }
 
         const bytes = await file.arrayBuffer();
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
         if (!supabaseUrl || !serviceRoleKey) {
             if (isProduction) {
@@ -74,6 +81,10 @@ export async function POST(request: NextRequest) {
 
             const local = await uploadLocally(file, bytes);
             return NextResponse.json(local);
+        }
+
+        if (!isCompactJwt(serviceRoleKey)) {
+            return productionStorageError("SUPABASE_SERVICE_ROLE_KEY is not a valid Supabase service role JWT");
         }
 
         try {
