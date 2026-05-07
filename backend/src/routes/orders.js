@@ -132,7 +132,9 @@ async function resolveMenuItemsAndTotal(items) {
     for (const item of items) {
         const menuItem = await resolveMenuItemFromPayload(item);
         menuItems.push(menuItem);
-        subtotal += Number(menuItem.price || 0) * Number(item.quantity || 0);
+        const payloadPrice = Number(item?.price);
+        const unitPrice = Number.isFinite(payloadPrice) ? payloadPrice : Number(menuItem.price || 0);
+        subtotal += unitPrice * Number(item.quantity || 0);
     }
 
     return { menuItems, subtotal };

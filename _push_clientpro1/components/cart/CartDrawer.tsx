@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus, ShoppingBag, Sparkles, X } from "lucide-react";
 import type { Dish } from "@/data/mockData";
 
-export type CartItem = Dish & { qty: number };
+export type CartItem = Dish & { qty: number; selectedVariant?: { name: string; price: number }; key?: string };
 
 type CartDrawerProps = {
     open: boolean;
@@ -16,7 +16,7 @@ type CartDrawerProps = {
 };
 
 export function CartDrawer({ open, items, onClose, onIncrease, onDecrease }: CartDrawerProps) {
-    const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+    const total = items.reduce((sum, item) => sum + ((item.selectedVariant?.price ?? item.price ?? 0) * item.qty), 0);
 
     return (
         <AnimatePresence>
@@ -53,7 +53,7 @@ export function CartDrawer({ open, items, onClose, onIncrease, onDecrease }: Car
                                     <li key={item.name} className="rounded-xl border border-[#CFAF63]/15 bg-[#141414] p-3 text-[#F5F5F5]/85">
                                         <div className="flex items-center justify-between gap-2">
                                             <p className="line-clamp-1 text-sm text-[#F5F5F5]">{item.name}</p>
-                                            <p className="text-[#CFAF63]">Rs {item.price * item.qty}</p>
+                                            <p className="text-[#CFAF63]">Rs {(item.selectedVariant?.price ?? item.price ?? 0) * item.qty}</p>
                                         </div>
                                         <div className="mt-3 inline-flex items-center rounded-full border border-[#CFAF63]/25">
                                             <button onClick={() => onDecrease(item.name)} className="px-3 py-1 text-[#F5F5F5]/75 hover:text-[#F5F5F5]">

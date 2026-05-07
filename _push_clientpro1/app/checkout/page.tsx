@@ -15,7 +15,7 @@ const CheckoutLocationPicker = dynamic(
     { ssr: false },
 );
 
-type CartItem = Dish & { qty: number };
+type CartItem = Dish & { qty: number; selectedVariant?: { name: string; price: number }; key?: string };
 
 type BackendMenuItem = {
     _id: string;
@@ -559,12 +559,12 @@ export default function CheckoutPage() {
                     : menuIdByName.get(normalizeDishName(item.name));
 
                 if (menuItemId) {
-                    return { menuItemId, quantity: item.qty, name: item.name, price: (item.selectedVariant?.price ?? item.price) };
+                    return { menuItemId, quantity: item.qty, name: item.name, price: Number(item.selectedVariant?.price ?? item.price ?? 0) };
                 }
 
                 return {
                     name: item.name,
-                    price: item.price,
+                    price: Number(item.selectedVariant?.price ?? item.price ?? 0),
                     quantity: item.qty,
                     image: item.image,
                     isVeg: item.isVeg,
@@ -576,7 +576,7 @@ export default function CheckoutPage() {
         } catch {
             return cart.map((item) => ({
                 name: item.name,
-                price: (item.selectedVariant?.price ?? item.price),
+                price: Number(item.selectedVariant?.price ?? item.price ?? 0),
                 quantity: item.qty,
                 image: item.image,
                 isVeg: item.isVeg,
@@ -610,7 +610,7 @@ export default function CheckoutPage() {
         try {
             const items = await resolveBackendItems();
 
-            const payload = JSON.stringify({ code: normalizedCode, items });
+            const payload = JSON.stringify({ code: normalizedCode, items, subtotal });
             const response = await apiFetch<AppliedCouponResponse>("/api/orders/apply-coupon/public", {
                 method: "POST",
                 token: "",

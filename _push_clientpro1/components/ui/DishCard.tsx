@@ -94,13 +94,13 @@ export const DishCard = memo(function DishCard({ dish, onAdd, priority = false }
 
     return (
         <motion.article
-            whileHover={{ y: -12, scale: 1.02 }}
+            whileHover={{ y: -6, scale: 1.01 }}
             transition={{ duration: 0.25, type: "tween" }}
             style={{ willChange: "transform" }}
             className="group overflow-hidden rounded-2xl border border-[#CFAF63]/30 bg-linear-to-br from-[#1A1816] to-[#0F0D0B] backdrop-blur-sm"
         >
             {/* Image Section - Bigger & Premium */}
-            <div className="relative h-56 overflow-hidden bg-black/40">
+            <div className="relative h-48 overflow-hidden bg-black/40 sm:h-56">
                 {!imageLoaded ? <div className="skeleton-shimmer absolute inset-0" /> : null}
                 <Image
                     src={currentImageSrc}
@@ -145,10 +145,10 @@ export const DishCard = memo(function DishCard({ dish, onAdd, priority = false }
             </div>
 
             {/* Content Section - Enhanced */}
-            <div className="space-y-4 p-5 group-hover:shadow-[0_0_60px_rgba(255,106,0,0.25)] transition-shadow duration-500">
+            <div className="space-y-4 p-4 transition-shadow duration-500 group-hover:shadow-[0_0_60px_rgba(255,106,0,0.25)] sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                        <h3 className="font-(--font-heading) text-2xl text-[#F5F5F5] leading-tight">{dish.name}</h3>
+                        <h3 className="font-(--font-heading) text-xl leading-tight text-[#F5F5F5] sm:text-2xl">{dish.name}</h3>
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                             <motion.span
                                 className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold transition ${isVeg ? "bg-[#00D98E]/25 text-[#4FE0A6]" : "bg-[#FF6A00]/25 text-[#FF8533]"
@@ -176,7 +176,7 @@ export const DishCard = memo(function DishCard({ dish, onAdd, priority = false }
                             )}
                         </div>
                     </div>
-                    <span className="whitespace-nowrap text-xl font-(--font-heading) text-[#CFAF63]">
+                    <span className="whitespace-nowrap text-lg font-(--font-heading) text-[#CFAF63] sm:text-xl">
                         {displayPrice ? `₹${displayPrice}` : ""}
                     </span>
                 </div>

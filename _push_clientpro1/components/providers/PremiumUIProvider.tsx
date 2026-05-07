@@ -19,9 +19,9 @@ type PremiumUIContextValue = {
     cartOpen: boolean;
     bookingOpen: boolean;
     soundEnabled: boolean;
-    addToCart: (dish: Dish) => void;
-    increaseQty: (name: string) => void;
-    decreaseQty: (name: string) => void;
+    addToCart: (dish: Dish & { selectedVariant?: { name: string; price: number } }) => void;
+    increaseQty: (key: string) => void;
+    decreaseQty: (key: string) => void;
     openCart: () => void;
     closeCart: () => void;
     openBooking: () => void;
@@ -68,25 +68,35 @@ export function PremiumUIProvider({ children }: { children: ReactNode }) {
         }, 2500);
     };
 
-    const addToCart = (dish: Dish) => {
+    const addToCart = (dish: Dish & { selectedVariant?: { name: string; price: number } }) => {
         setCartItems((prev) => {
-            const existing = prev.find((item) => item.name === dish.name);
-            return existing
-                ? prev.map((item) => (item.name === dish.name ? { ...item, qty: item.qty + 1 } : item))
-                : [...prev, { ...dish, qty: 1 }];
+            const key = `${dish._id ?? dish.name}::${dish.selectedVariant?.name ?? ""}`;
+            const existing = prev.find((item) => item.key === key);
+            if (existing) {
+                return prev.map((item) => (item.key === key ? { ...item, qty: item.qty + 1 } : item));
+            }
+
+            const cartEntry: CartItem = {
+                ...dish,
+                qty: 1,
+                key,
+                selectedVariant: dish.selectedVariant,
+            };
+
+            return [...prev, cartEntry];
         });
         setCartOpen(true);
         pushToast(`${dish.name} added to cart`);
     };
 
-    const increaseQty = (name: string) => {
-        setCartItems((prev) => prev.map((item) => (item.name === name ? { ...item, qty: item.qty + 1 } : item)));
+    const increaseQty = (key: string) => {
+        setCartItems((prev) => prev.map((item) => (item.key === key ? { ...item, qty: item.qty + 1 } : item)));
     };
 
-    const decreaseQty = (name: string) => {
+    const decreaseQty = (key: string) => {
         setCartItems((prev) =>
             prev
-                .map((item) => (item.name === name ? { ...item, qty: item.qty - 1 } : item))
+                .map((item) => (item.key === key ? { ...item, qty: item.qty - 1 } : item))
                 .filter((item) => item.qty > 0)
         );
     };
@@ -97,7 +107,7 @@ export function PremiumUIProvider({ children }: { children: ReactNode }) {
     };
 
     const cartCount = useMemo(() => cartItems.reduce((sum, item) => sum + item.qty, 0), [cartItems]);
-    const cartTotal = useMemo(() => cartItems.reduce((sum, item) => sum + item.price * item.qty, 0), [cartItems]);
+    const cartTotal = useMemo(() => cartItems.reduce((sum, item) => sum + ((item.selectedVariant?.price ?? item.price ?? 0) * item.qty), 0), [cartItems]);
     const showFloatingActions = pathname !== "/menu";
 
     const value: PremiumUIContextValue = {

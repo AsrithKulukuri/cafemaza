@@ -180,10 +180,10 @@ export default function MenuPage() {
 
     return (
         <>
-            <div className="mx-auto max-w-7xl px-6 md:px-10">
+            <div className="mx-auto max-w-7xl px-4 md:px-10">
                 <section className="mb-6 section-glow">
                     <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Interactive Menu</p>
-                    <h1 className="mt-2 font-(--font-heading) text-6xl text-[#F5F5F5] leading-tight">Chef Curated<br />Selections</h1>
+                    <h1 className="mt-2 font-(--font-heading) text-4xl leading-tight text-[#F5F5F5] sm:text-5xl md:text-6xl">Chef Curated<br />Selections</h1>
                     <GoldDivider className="max-w-md" />
                     <p className="mt-4 text-[#F5F5F5]/70 max-w-lg leading-relaxed">
                         Discover our carefully curated menu featuring authentic Indian flavors, premium grilled specialties,
@@ -224,7 +224,7 @@ export default function MenuPage() {
                 </div>
             </div>
 
-            <div className="mx-auto max-w-7xl px-6 pb-20 md:px-10">
+            <div className="mx-auto max-w-7xl px-4 pb-24 md:px-10">
                 {/* SPACER FOR STICKY HEADER */}
                 <div className="pt-4 md:pt-6" aria-hidden="true" />
 

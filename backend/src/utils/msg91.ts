@@ -147,7 +147,7 @@ export async function sendMsg91WhatsAppOtp(phoneE164: string, otpCode: string): 
     });
 
     const rawBody = await response.text();
-    let responseBody: Msg91WhatsAppResponse | { message: string } | null = null;
+    let responseBody: Msg91WhatsAppResponse | null = null;
 
     if (rawBody) {
         try {

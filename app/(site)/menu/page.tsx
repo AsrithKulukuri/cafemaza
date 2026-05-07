@@ -1,7 +1,6 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { DishCard } from "@/components/ui/DishCard";
 import { GoldDivider } from "@/components/ui/GoldDivider";
@@ -9,7 +8,6 @@ import { SectionReveal } from "@/components/ui/SectionReveal";
 import { usePremiumUI } from "@/components/providers/PremiumUIProvider";
 import { menuCategories, type Dish } from "@/data/mockData";
 import { MenuCardSkeleton } from "@/components/ui/MenuCardSkeleton";
-import { staggerChildren } from "@/lib/motionPresets";
 import { apiFetch } from "@/lib/api";
 
 type BackendMenuItem = {
@@ -142,11 +140,18 @@ export default function MenuPage() {
     };
 
     useEffect(() => {
+        let cancelled = false;
+        const fallbackTimer = window.setTimeout(() => {
+            if (!cancelled) {
+                setLoadingGrid(false);
+            }
+        }, 1200);
+
         async function loadMenu() {
             try {
                 const items = await apiFetch<BackendMenuItem[]>("/api/menu");
 
-                if (!items.length) {
+                if (!items.length || cancelled) {
                     return;
                 }
 
@@ -155,15 +160,19 @@ export default function MenuPage() {
                 setActive(mapped[0]?.id ?? "");
             } catch {
                 // Keep local mock data as fallback when backend is unavailable.
+            } finally {
+                if (!cancelled) {
+                    setLoadingGrid(false);
+                }
             }
         }
 
         loadMenu();
-    }, []);
 
-    useEffect(() => {
-        const timer = window.setTimeout(() => setLoadingGrid(false), 650);
-        return () => window.clearTimeout(timer);
+        return () => {
+            cancelled = true;
+            window.clearTimeout(fallbackTimer);
+        };
     }, []);
 
     useEffect(() => {
@@ -202,10 +211,10 @@ export default function MenuPage() {
     return (
 
         <>
-            <div className="mx-auto max-w-7xl px-6 md:px-10">
+            <div className="mx-auto max-w-7xl px-4 md:px-10">
                 <SectionReveal className="mb-6 section-glow">
                     <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Interactive Menu</p>
-                    <h1 className="mt-2 font-(--font-heading) text-6xl text-[#F5F5F5] leading-tight">Chef Curated<br />Selections</h1>
+                    <h1 className="mt-2 font-(--font-heading) text-4xl leading-tight text-[#F5F5F5] sm:text-5xl md:text-6xl">Chef Curated<br />Selections</h1>
                     <GoldDivider className="max-w-md" />
                     <p className="mt-4 text-[#F5F5F5]/70 max-w-lg leading-relaxed">
                         Discover our carefully curated menu featuring authentic Indian flavors, premium grilled specialties,
@@ -246,7 +255,7 @@ export default function MenuPage() {
                 </div>
             </div>
 
-            <div className="mx-auto max-w-7xl px-6 pb-20 md:px-10">
+            <div className="mx-auto max-w-7xl px-4 pb-24 md:px-10">
                 {/* SPACER FOR STICKY HEADER */}
                 <div className="pt-4 md:pt-6" aria-hidden="true" />
 
@@ -266,30 +275,23 @@ export default function MenuPage() {
                                     sectionRefs.current[category.id] = element;
                                 }}
                                 className="scroll-mt-52 md:scroll-mt-40"
-                                style={{ contentVisibility: "auto", containIntrinsicSize: "1000px" }}
                             >
                                 <div className="mb-6 flex items-center justify-between border-b border-[#D4AF37]/25 pb-4 md:mb-8">
-                                    <h2 className="font-(--font-heading) text-4xl text-[#F5F5F5] md:text-5xl">{category.label}</h2>
+                                    <h2 className="font-(--font-heading) text-3xl text-[#F5F5F5] md:text-5xl">{category.label}</h2>
                                     <span className="text-sm font-medium text-[#CFAF63]/80 tracking-[0.1em]">{category.items.length} Items</span>
                                 </div>
 
-                                <motion.div
-                                    className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                                    variants={staggerChildren}
-                                    initial="hidden"
-                                    whileInView="show"
-                                    viewport={{ once: true, amount: 0.1 }}
-                                >
+                                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                     {category.items.map((dish, index) => {
                                         const prioritizeImage = !searchQuery.trim() && filteredCategories[0]?.id === category.id && index < 4;
 
                                         return (
-                                            <motion.div key={`${category.id}-${dish.name}`} variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1 } }}>
+                                            <div key={`${category.id}-${dish.name}`}>
                                                 <DishCard dish={dish} onAdd={addToCart} priority={prioritizeImage} />
-                                            </motion.div>
+                                            </div>
                                         );
                                     })}
-                                </motion.div>
+                                </div>
                             </section>
                         ))}
                     </div>
