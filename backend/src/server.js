@@ -33,8 +33,10 @@ const io = new Server(server, {
 
             callback(new Error("Not allowed by CORS"));
         },
+        methods: ["GET", "POST"],
         credentials: true,
     },
+    transports: ["websocket", "polling"],
 });
 
 const latestOrderLocationById = new Map();

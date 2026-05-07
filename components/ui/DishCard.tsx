@@ -25,6 +25,10 @@ function getOptimizedImageSrc(src: string) {
         return "/images/soup.jpg";
     }
 
+    if (src.includes("images.pexels.com")) {
+        return "/images/soup.jpg";
+    }
+
     if (src.includes("images.unsplash.com")) {
         const separator = src.includes("?") ? "&" : "?";
         return `${src}${separator}auto=format&fit=crop&w=640&q=55`;

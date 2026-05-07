@@ -44,6 +44,17 @@ function toCategoryLabel(id: string) {
         .join(" ");
 }
 
+function getCategoryFallbackImage(categoryId: string, name: string) {
+    const value = `${categoryId} ${name}`.toLowerCase();
+    if (value.includes("biryani")) return "/images/chicken-dum-biryani.jpg";
+    if (value.includes("drink") || value.includes("mocktail") || value.includes("beverage") || value.includes("lassi")) return "/images/virgin-mojito.jpg";
+    if (value.includes("tandoori") || value.includes("kebab") || value.includes("tikka")) return "/images/chicken-tikka.jpg";
+    if (value.includes("bread") || value.includes("naan") || value.includes("roti")) return "/images/roti.jpg";
+    if (value.includes("dessert") || value.includes("sweet")) return "/images/dessert.jpg";
+    if (value.includes("chinese") || value.includes("noodles") || value.includes("fried")) return "/images/chilli-chicken.jpg";
+    return "/images/soup.jpg";
+}
+
 function mapBackendToCategories(items: BackendMenuItem[]): MenuCategoryView[] {
     const grouped = new Map<string, Dish[]>();
 
@@ -64,12 +75,17 @@ function mapBackendToCategories(items: BackendMenuItem[]): MenuCategoryView[] {
 
         const key = cat.replace(/\s+/g, "-");
         const current = grouped.get(key) ?? [];
+        const rawImage = String(item.image || "").trim();
+        const image = rawImage && !rawImage.includes("images.pexels.com")
+            ? rawImage
+            : getCategoryFallbackImage(key, item.name);
+
         current.push({
             _id: item._id,
             name: item.name,
             price: item.price,
             variants: item.variants,
-            image: item.image || "/images/soup.jpg",
+            image,
             isVeg: item.isVeg,
             isBestSeller: item.isBestSeller ?? item.isPopular,
             isSpecial: item.isSpecial,

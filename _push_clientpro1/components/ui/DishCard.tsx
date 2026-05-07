@@ -27,6 +27,10 @@ function getOptimizedImageSrc(src: string) {
         return "/images/soup.jpg";
     }
 
+    if (src.includes("images.pexels.com")) {
+        return "/images/soup.jpg";
+    }
+
     // Unsplash supports URL transforms to deliver lighter images.
     if (src.includes("images.unsplash.com")) {
         const separator = src.includes("?") ? "&" : "?";

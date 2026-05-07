@@ -11,7 +11,20 @@ async function resolveUserFromAuthorizationHeader(header) {
         return null;
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)) {
+        const error = new Error("Invalid token");
+        error.status = 401;
+        throw error;
+    }
+
+    const jwtSecret = String(process.env.JWT_SECRET || "").trim();
+    if (!jwtSecret) {
+        const error = new Error("JWT secret is not configured");
+        error.status = 500;
+        throw error;
+    }
+
+    const decoded = jwt.verify(token, jwtSecret);
     const user = await User.findById(decoded.id).select("-password");
     return user || null;
 }

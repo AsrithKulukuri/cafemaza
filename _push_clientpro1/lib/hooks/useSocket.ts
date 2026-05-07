@@ -13,13 +13,12 @@ export function useSocket(): Socket | null {
         setIsClient(true);
     }, []);
 
-    if (!isClient) {
-        return null;
-    }
-
-    if (!defaultSocket.connected) {
+    useEffect(() => {
+        if (!isClient || defaultSocket.connected) return;
         defaultSocket.connect();
-    }
+    }, [isClient]);
+
+    if (!isClient) return null;
 
     return defaultSocket;
 }

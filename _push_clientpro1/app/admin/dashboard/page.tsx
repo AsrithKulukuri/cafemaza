@@ -155,7 +155,7 @@ export default function AdminDashboard() {
             return "/images/soup.jpg";
         }
 
-        if (src.includes("unsplash.com/photos/")) {
+        if (src.includes("unsplash.com/photos/") || src.includes("images.pexels.com/photos/1095521/")) {
             return "/images/soup.jpg";
         }
 
@@ -492,7 +492,8 @@ export default function AdminDashboard() {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.error || "Image upload failed");
+            const hint = result.hint ? ` ${result.hint}` : "";
+            throw new Error(`${result.error || "Image upload failed"}${hint}`);
         }
 
         return result.publicUrl as string;
@@ -1176,12 +1177,13 @@ export default function AdminDashboard() {
                                             <td className="py-3 px-3">
                                                 <div className="flex items-center gap-3">
                                                     <div className="relative h-12 w-12 overflow-hidden rounded-lg">
-                                                        <Image
+                                                        <img
                                                             src={getSafeMenuImageSrc(item.image)}
                                                             alt={item.name}
-                                                            fill
-                                                            sizes="48px"
-                                                            className="object-cover"
+                                                            onError={(event) => {
+                                                                event.currentTarget.src = "/images/soup.jpg";
+                                                            }}
+                                                            className="h-full w-full object-cover"
                                                         />
                                                     </div>
                                                     <div>

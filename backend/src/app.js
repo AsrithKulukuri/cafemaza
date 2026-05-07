@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/auth.js";
 import menuRoutes from "./routes/menu.js";
@@ -13,11 +15,14 @@ import whatsappWebhookRoutes from "./routes/whatsappWebhook.js";
 import { errorHandler } from "./middlewares/error.js";
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const isProduction = String(process.env.NODE_ENV || "").toLowerCase() === "production";
 const logLevel = String(process.env.LOG_LEVEL || "").toLowerCase();
 
 app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000", credentials: true }));
 app.use(express.json({ limit: "1mb" }));
+app.use("/uploads", express.static(path.resolve(__dirname, "../../uploads")));
 if (!isProduction || logLevel === "debug") {
     app.use(morgan("dev"));
 }
