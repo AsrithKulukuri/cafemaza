@@ -2,9 +2,8 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ClipboardCheck, ClipboardCopy } from "lucide-react";
 import { DishCard } from "@/components/ui/DishCard";
 import { SectionReveal } from "@/components/ui/SectionReveal";
 import { LuxuryButton } from "@/components/ui/LuxuryButton";
@@ -32,47 +31,6 @@ const CTA_ACTIONS = [
     { title: "Takeaway", subtitle: "Order ahead for quick pickup", href: "/takeaway", icon: "🛍️" },
     { title: "Order Online", subtitle: "Home delivery with premium packaging", href: "/order-online", icon: "📦" },
 ];
-
-const MASTER_PROMPT = `You are working on the Cafe Maza project, a premium luxury family restaurant website and order platform.
-
-Project identity:
-- Brand name: Cafe Maza
-- Brand style: premium, cinematic, warm, gold-accented, dark luxury dining atmosphere
-- Core promise: live grill experience, authentic Indian cuisine, signature biryanis, elegant family dining, reservations, takeaway, delivery, and private screening
-
-Technology stack:
-- Frontend: Next.js App Router, React 19, TypeScript, Tailwind CSS, Framer Motion
-- Backend: Node.js, Express, MongoDB, Mongoose, Socket.IO
-- Auth and profile: JWT plus Supabase session support where applicable
-- Payments: Razorpay
-- Messaging: MSG91 WhatsApp OTP and order notifications
-
-Important product areas:
-- Public marketing pages: home, menu, live grill, gallery, contact, reserve table, screening, takeaway, order online, portals
-- Authentication portals: customer login/signup, admin login, staff login, delivery login
-- Customer flows: browsing menu, cart, coupons, checkout, address selection, delivery, takeaway, cash or online payment, order tracking, profile
-- Admin flows: menu management, coupon management, promo banners, staff and delivery user management, reservations, screenings, order analytics
-- Real-time flows: Socket.IO location tracking, order updates, delivery tracking, live status refresh
-
-Design direction:
-- Keep the interface luxurious, cinematic, and premium rather than generic
-- Use deep dark backgrounds, gold and amber accents, refined gradients, subtle glow, glassy surfaces, elegant spacing, and expressive typography
-- Avoid flat default UI and avoid bland app-dashboard styling
-- Make every section feel like a polished restaurant brand, not a template
-
-Behavior rules:
-- Preserve the current brand language and existing page structure unless a change is explicitly requested
-- Prefer stable backend data over mock data when available
-- Keep the UI responsive on mobile, tablet, and desktop
-- Make interactions feel smooth and deliberate with subtle motion, hover depth, and polished transitions
-- Keep forms clear, validation-friendly, and production-safe
-
-Implementation constraints:
-- Do not break existing APIs, auth flows, or live order logic
-- Keep the code minimal, maintainable, and aligned with the current style system
-- Any new section must integrate with the existing luxury design system and work cleanly inside the App Router structure
-
-When updating the product, always think like a senior engineer and a luxury hospitality brand designer at the same time. The output should feel high-end, reliable, and production-ready.`;
 
 type BackendMenuItem = {
     _id: string;
@@ -103,22 +61,9 @@ export default function HomePage() {
     const [isDishesLoading, setIsDishesLoading] = useState(true);
     const [promoBanners, setPromoBanners] = useState<PromoBanner[]>([]);
     const [activePromoIndex, setActivePromoIndex] = useState(0);
-    const [copiedPrompt, setCopiedPrompt] = useState(false);
-
-    const masterPromptLines = useMemo(() => MASTER_PROMPT.trim().split("\n").length, []);
 
     const openScreeningModal = useCallback(() => setShowScreeningModal(true), []);
     const closeScreeningModal = useCallback(() => setShowScreeningModal(false), []);
-
-    const copyMasterPrompt = useCallback(async () => {
-        try {
-            await navigator.clipboard.writeText(MASTER_PROMPT.trim());
-            setCopiedPrompt(true);
-            window.setTimeout(() => setCopiedPrompt(false), 2200);
-        } catch {
-            setCopiedPrompt(false);
-        }
-    }, []);
 
     useEffect(() => {
         let mounted = true;
@@ -588,62 +533,6 @@ export default function HomePage() {
                                         <span className="text-[#CFAF63]">₹{item.price}</span>
                                     </li>
                                 ))}
-
-                                {/* 4. MASTER PROMPT */}
-                                <SectionReveal direction="left" className="mx-auto max-w-6xl px-6 md:px-10 section-glow">
-                                    <div className="grid gap-6 lg:grid-cols-[0.95fr,1.05fr]">
-                                        <div className="rounded-3xl border border-[#CFAF63]/20 bg-[#101010]/85 p-6 shadow-[0_0_45px_rgba(0,0,0,0.35)] md:p-8">
-                                            <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Master Prompt</p>
-                                            <h2 className="mt-2 font-[var(--font-heading)] text-4xl text-[#F5F5F5]">Project AI Brief</h2>
-                                            <GoldDivider className="max-w-sm" />
-                                            <p className="max-w-xl text-sm leading-7 text-[#F5F5F5]/72 md:text-base">
-                                                Use this prompt whenever you want to generate new pages, features, fixes, or design ideas for Cafe Maza.
-                                                It captures the brand, stack, user journeys, and visual direction in one place.
-                                            </p>
-
-                                            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                                                <div className="rounded-2xl border border-[#CFAF63]/15 bg-[#151515] px-4 py-3">
-                                                    <p className="text-xs uppercase tracking-[0.18em] text-[#999]">Lines</p>
-                                                    <p className="mt-1 text-2xl font-semibold text-[#F5F5F5]">{masterPromptLines}</p>
-                                                </div>
-                                                <div className="rounded-2xl border border-[#CFAF63]/15 bg-[#151515] px-4 py-3">
-                                                    <p className="text-xs uppercase tracking-[0.18em] text-[#999]">Style</p>
-                                                    <p className="mt-1 text-2xl font-semibold text-[#F5F5F5]">Luxury</p>
-                                                </div>
-                                                <div className="rounded-2xl border border-[#CFAF63]/15 bg-[#151515] px-4 py-3">
-                                                    <p className="text-xs uppercase tracking-[0.18em] text-[#999]">Stack</p>
-                                                    <p className="mt-1 text-2xl font-semibold text-[#F5F5F5]">Next + Node</p>
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                onClick={copyMasterPrompt}
-                                                className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#CFAF63]/35 bg-[#121212] px-5 py-3 text-sm font-semibold text-[#F5F5F5] transition hover:border-[#FF6A00]/50 hover:text-[#FFD78B]"
-                                            >
-                                                {copiedPrompt ? <ClipboardCheck size={16} className="text-[#7CFFB2]" /> : <ClipboardCopy size={16} className="text-[#CFAF63]" />}
-                                                {copiedPrompt ? "Copied" : "Copy Master Prompt"}
-                                            </button>
-                                        </div>
-
-                                        <div className="rounded-3xl border border-[#CFAF63]/20 bg-[#0E0E0E]/95 p-4 shadow-[0_0_50px_rgba(0,0,0,0.45)] md:p-6">
-                                            <div className="mb-4 flex items-center justify-between gap-3">
-                                                <div>
-                                                    <p className="text-xs uppercase tracking-[0.2em] text-[#CFAF63]">Prompt Preview</p>
-                                                    <h3 className="mt-1 font-[var(--font-heading)] text-2xl text-[#F5F5F5]">Editable Project Brief</h3>
-                                                </div>
-                                                <span className="rounded-full border border-[#CFAF63]/20 bg-[#141414] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[#F5F5F5]/65">
-                                                    Read only
-                                                </span>
-                                            </div>
-                                            <textarea
-                                                readOnly
-                                                value={MASTER_PROMPT.trim()}
-                                                className="min-h-[520px] w-full resize-none rounded-2xl border border-[#CFAF63]/18 bg-[#0A0A0A] px-4 py-4 text-sm leading-7 text-[#F5F5F5]/82 outline-none scrollbar-thin scrollbar-thumb-[#CFAF63]/35 scrollbar-track-transparent md:text-[15px]"
-                                            />
-                                        </div>
-                                    </div>
-                                </SectionReveal>
                             </ul>
                         </motion.article>
                     ))}
