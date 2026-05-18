@@ -38,7 +38,13 @@ type BackendOrder = {
     address?: string;
     specialInstructions?: string;
     userId?: { phone?: string };
-    items: Array<{ quantity: number; menuItemId?: { name?: string } }>;
+    // some backends include embedded item name or a different key `menuItemName`
+    items: Array<{
+        quantity: number;
+        menuItemId?: { name?: string };
+        name?: string;
+        menuItemName?: string;
+    }>;
 };
 
 function tabToStatus(tab: KitchenTab): BackendOrderStatus {

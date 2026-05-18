@@ -158,6 +158,15 @@ export const premiumPhotos = [
     { caption: "Handcrafted Platters", src: "/images/gallery-platter.jpg" },
 ];
 
+export const galleryImages = [
+    { src: "/images/gallery-grill.jpg", alt: "Grill cooking" },
+    { src: "/images/gallery-interior.jpg", alt: "Restaurant interior" },
+    { src: "/images/gallery-chef.jpg", alt: "Chef preparing food" },
+    { src: "/images/gallery-family.jpg", alt: "Family dining" },
+    { src: "/images/gallery-platter.jpg", alt: "Signature platter" },
+    { src: "/images/gallery-fire.jpg", alt: "Flame grilling" },
+];
+
 // ============== SCREENING BOOKING DATA ==============
 
 export type ScreeningBooking = {
