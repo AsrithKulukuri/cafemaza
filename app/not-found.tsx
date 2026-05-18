@@ -67,7 +67,6 @@ export default function NotFound() {
                     {[
                         { href: "/reserve-table", label: "Reserve Table" },
                         { href: "/order-online", label: "Order Online" },
-                        { href: "/gallery", label: "Gallery" },
                         { href: "/contact", label: "Contact" },
                     ].map((link) => (
                         <Link

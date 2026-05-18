@@ -9,7 +9,6 @@ const SITE_ROUTES = new Set([
     "/",
     "/menu",
     "/contact",
-    "/gallery",
     "/live-grill",
     "/order-online",
     "/reserve-table",
@@ -58,6 +57,7 @@ export function GlobalPageNav() {
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
                 <div className="flex items-center gap-3">
                     <button
+                        suppressHydrationWarning
                         onClick={handleBack}
                         className="inline-flex items-center gap-2 rounded-full border border-[#CFAF63]/35 px-3 py-2 text-xs font-semibold text-[#F5F5F5] hover:border-[#FF6A00] hover:text-[#FF6A00]"
                     >

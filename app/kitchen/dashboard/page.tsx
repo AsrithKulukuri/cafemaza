@@ -8,6 +8,7 @@ import { ChefHat, CheckCircle2, Clock3, LogOut, RefreshCw } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { clearAuthSession, getAuthToken, getAuthUser } from "@/lib/authToken";
 import { socket } from "@/lib/socket";
+import { formatRelative } from "@/lib/time";
 
 type KitchenTab = "new" | "preparing" | "ready";
 
@@ -102,7 +103,7 @@ export default function KitchenDashboardPage() {
                     address: order.address,
                     specialInstructions: order.specialInstructions,
                     items: order.items.map((item) => ({
-                        name: item.menuItemId?.name || "Menu Item",
+                        name: item.menuItemId?.name || item.name || (item.menuItemName as any) || "Menu Item",
                         quantity: item.quantity,
                     })),
                 }));
@@ -116,11 +117,28 @@ export default function KitchenDashboardPage() {
 
         void loadOrders();
 
+        // Schedule a daily re-fetch at local midnight
+        const msUntilMidnight = (() => {
+            const now = new Date();
+            const next = new Date(now);
+            next.setHours(24, 0, 0, 0);
+            return next.getTime() - now.getTime();
+        })();
+
+        const midnightTimer = setTimeout(() => {
+            void loadOrders();
+            const dailyInterval = setInterval(() => void loadOrders(), 24 * 60 * 60 * 1000);
+            // store on window so cleanup can find it if effect re-runs
+            (window as any).__kitchen_daily_interval = dailyInterval;
+        }, msUntilMidnight);
+        (window as any).__kitchen_midnight_timeout = midnightTimer;
+
         if (!socket.connected) {
             socket.connect();
         }
 
         const refreshOnEvent = () => {
+            console.debug("socket event received: refreshing kitchen orders");
             void loadOrders();
         };
 
@@ -130,14 +148,25 @@ export default function KitchenDashboardPage() {
         return () => {
             socket.off("order_created", refreshOnEvent);
             socket.off("order_status_updated", refreshOnEvent);
+            // clear scheduled daily jobs
+            clearTimeout((window as any).__kitchen_midnight_timeout);
+            clearInterval((window as any).__kitchen_daily_interval);
         };
     }, [refreshTick]);
+
+    // Tick every minute so relative timestamps update
+    const [timeTick, setTimeTick] = useState(0);
+    useEffect(() => {
+        const id = setInterval(() => setTimeTick((t) => t + 1), 60 * 1000);
+        return () => clearInterval(id);
+    }, []);
 
     const visibleOrders = useMemo(() => {
         const status = tabToStatus(tab);
         return orders
             .filter((order) => order.status === status)
-            .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+            // Newest orders first
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }, [orders, tab]);
 
     const updateStatus = async (orderId: string, status: BackendOrderStatus) => {
@@ -213,7 +242,7 @@ export default function KitchenDashboardPage() {
                                 <div className="mb-3 flex items-start justify-between gap-2">
                                     <div>
                                         <p className="text-sm uppercase tracking-[0.15em] text-[#CFAF63]">Order #{order.id.slice(-6).toUpperCase()}</p>
-                                        <p className="text-xs text-[#B8B8B8]">{new Date(order.createdAt).toLocaleTimeString()}</p>
+                                        <p className="text-xs text-[#B8B8B8]">{formatRelative(order.createdAt)}</p>
                                     </div>
                                     <span className="rounded-full border border-[#CFAF63]/40 px-2 py-1 text-xs text-[#CFAF63]">
                                         {order.orderType ? orderTypeLabel[order.orderType] : "Order"}

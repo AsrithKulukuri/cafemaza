@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
 
+import { buildOrderReceivedText } from "./orderNotifications.js";
+
 let transporter = null;
 let missingConfigWarned = false;
 
@@ -49,15 +51,15 @@ export async function sendOrderNotificationEmail({
     }
 
     const subject = `New Order Received - ${orderId}`;
-    const text = [
-        `Order ID: ${orderId}`,
-        `Customer: ${customerName || "N/A"}`,
-        `Email: ${customerEmail || "N/A"}`,
-        `Total: INR ${totalAmount}`,
-        `Payment: ${paymentMethod}`,
-        `Address: ${address}`,
-        `Items: ${itemSummary}`,
-    ].join("\n");
+    const text = buildOrderReceivedText({
+        orderId,
+        customerName,
+        customerEmail,
+        totalAmount,
+        paymentMethod,
+        address,
+        itemSummary,
+    });
 
     await mailer.sendMail({
         from: process.env.SMTP_USER,

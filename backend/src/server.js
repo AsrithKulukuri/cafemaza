@@ -6,6 +6,7 @@ import app from "./app.js";
 import { connectDatabase } from "./config/db.js";
 import { setSocketIO } from "./config/socket.js";
 import { logger } from "./utils/logger.js";
+import { scheduleDailyAnalytics } from "./jobs/computeAnalytics.js";
 
 dotenv.config({ override: true });
 
@@ -89,6 +90,7 @@ function startServer(initialPort) {
 setSocketIO(io);
 
 io.on("connection", (socket) => {
+    logger.info("Socket connected", { id: socket.id, origin: socket.handshake.headers.origin });
     socket.on("join_order", (orderId) => {
         socket.join(`order:${orderId}`);
 
@@ -96,6 +98,11 @@ io.on("connection", (socket) => {
         if (latest) {
             socket.emit("location_update", latest);
         }
+    });
+
+    // Allow admin dashboards to join an 'admins' room so they can receive admin-targeted events
+    socket.on("join_admin", () => {
+        socket.join("admins");
     });
 
     // Location tracking: delivery partner sends location to customer and vice versa
@@ -128,6 +135,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
+        logger.info("Socket disconnected", { id: socket.id });
         // No-op
     });
 });
@@ -136,6 +144,11 @@ connectDatabase()
     .then(() => {
         validateRuntimeEnv();
         startServer(configuredPort);
+        try {
+            scheduleDailyAnalytics(Number(process.env.ANALYTICS_DAYS || 90));
+        } catch (err) {
+            logger.warn("Failed to start analytics scheduler", { message: err?.message });
+        }
     })
     .catch((error) => {
         logger.error("Database connection failed", { message: error?.message });

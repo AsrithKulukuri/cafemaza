@@ -2,6 +2,7 @@ import { WhatsAppMessageLog } from "../models/WhatsAppMessageLog.js";
 import { logger, maskPhone } from "./logger.js";
 
 const MSG91_WHATSAPP_API_URL = "https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/";
+const MSG91_WHATSAPP_TEXT_API_URL = "https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/";
 const MSG91_PROVIDER_NAME = "msg91";
 const MSG91_EVENT_DEDUPE_MINUTES = Math.max(1, Number(process.env.MSG91_EVENT_DEDUPE_MINUTES || 180));
 const MSG91_ORDER_DELIVERED_DEDUPE_MINUTES = Math.max(
@@ -15,6 +16,7 @@ export const ORDER_LIFECYCLE_TEMPLATE_ENV = {
     delivery_assigned: "MSG91_DELIVERY_ASSIGNED_TEMPLATE",
     out_for_delivery: "MSG91_OUT_FOR_DELIVERY_TEMPLATE",
     order_delivered: "MSG91_ORDER_DELIVERED_TEMPLATE",
+    order_received_admin: "MSG91_ORDER_RECEIVED_TEMPLATE",
 };
 
 const ORDER_LIFECYCLE_PARAMETER_NAMES = {
@@ -23,6 +25,7 @@ const ORDER_LIFECYCLE_PARAMETER_NAMES = {
     delivery_assigned: ["customer_name", "order_id", "delivery_name"],
     out_for_delivery: ["customer_name", "order_id"],
     order_delivered: ["customer_name", "order_id"],
+    order_received_admin: ["order_id", "customer_name", "customer_email", "amount", "payment_method", "address", "items"],
 };
 
 function normalizeMsg91Phone(rawPhone) {
@@ -97,6 +100,24 @@ function getTemplateLanguage() {
     return String(process.env.MSG91_ORDER_LANGUAGE || process.env.MSG91_OTP_LANGUAGE || "en").trim();
 }
 
+function normalizeWhatsappPhone(rawPhone) {
+    const digits = String(rawPhone || "").replace(/\D/g, "");
+
+    if (/^91\d{10}$/.test(digits)) {
+        return digits;
+    }
+
+    if (/^[6-9]\d{9}$/.test(digits)) {
+        return `91${digits}`;
+    }
+
+    if (/^0\d{10}$/.test(digits)) {
+        return `91${digits.slice(1)}`;
+    }
+
+    throw new Error("Phone number must be sent as 91XXXXXXXXXX for MSG91 WhatsApp messages.");
+}
+
 function formatCurrency(amount) {
     const numericAmount = Number(amount);
 
@@ -111,6 +132,10 @@ function buildBodyParameters({ eventType, order, deliveryPartnerName }) {
     const customerName = String(order?.userId?.name || order?.customerName || "Customer").trim() || "Customer";
     const orderId = String(order?._id || order?.orderId || "").trim();
     const totalAmount = formatCurrency(order?.totalAmount);
+    const customerEmail = String(order?.userId?.email || order?.customerEmail || "N/A").trim() || "N/A";
+    const paymentMethod = String(order?.paymentMethod || "N/A").trim() || "N/A";
+    const address = String(order?.address || "N/A").trim() || "N/A";
+    const items = String(order?.itemSummary || order?.itemsSummary || "N/A").trim() || "N/A";
 
     switch (eventType) {
         case "order_placed":
@@ -123,6 +148,8 @@ function buildBodyParameters({ eventType, order, deliveryPartnerName }) {
             return [customerName, orderId];
         case "order_delivered":
             return [customerName, orderId];
+        case "order_received_admin":
+            return [orderId, customerName, customerEmail, totalAmount, paymentMethod, address, items];
         default:
             return [];
     }
@@ -567,4 +594,59 @@ export function sendMsg91OrderDeliveredNotification({ orderId, recipientType = "
         eventType: "order_delivered",
         order,
     });
+}
+
+export function sendMsg91OrderReceivedNotification({ orderId, recipientType = "admin", to, order }) {
+    return sendMsg91TemplateMessage({
+        orderId,
+        recipientType,
+        to,
+        eventType: "order_received_admin",
+        order,
+    });
+}
+
+export async function sendMsg91WhatsAppTextMessage({ to, text }) {
+    const authKey = String(process.env.MSG91_AUTH_KEY || "").trim();
+    const integratedNumber = String(process.env.MSG91_INTEGRATED_NUMBER || "").trim();
+
+    if (!authKey || !integratedNumber) {
+        return { ok: false, reason: "missing_config" };
+    }
+
+    const recipientNumber = normalizeWhatsappPhone(to);
+    const endpoint = new URL(MSG91_WHATSAPP_TEXT_API_URL);
+    endpoint.searchParams.set("integrated_number", integratedNumber);
+    endpoint.searchParams.set("recipient_number", recipientNumber);
+    endpoint.searchParams.set("content_type", "text");
+    endpoint.searchParams.set("text", String(text || "").trim());
+
+    const response = await fetch(endpoint.toString(), {
+        method: "POST",
+        headers: {
+            authkey: authKey,
+            "Content-Type": "application/json",
+            accept: "application/json",
+        },
+        body: null,
+    });
+
+    const rawBody = await response.text();
+    let responseBody = null;
+
+    if (rawBody) {
+        try {
+            responseBody = JSON.parse(rawBody);
+        } catch {
+            responseBody = { message: rawBody };
+        }
+    }
+
+    if (!response.ok) {
+        const errorMessage = getMsg91ErrorMessage(responseBody, `MSG91 WhatsApp text API failed with status ${response.status}`);
+        logger.error("[MSG91 WhatsApp] Text message send failed", { status: response.status, to: maskPhone(recipientNumber) });
+        return { ok: false, reason: errorMessage, providerResponse: responseBody };
+    }
+
+    return { ok: true, to: recipientNumber, providerResponse: responseBody };
 }

@@ -229,6 +229,10 @@ export default function AdminDashboard() {
         endsAt: "",
         isActive: true,
     });
+    const [notificationPhone, setNotificationPhone] = useState("");
+    const [notificationSaving, setNotificationSaving] = useState(false);
+    const [notificationError, setNotificationError] = useState("");
+    const [notificationSavedAt, setNotificationSavedAt] = useState<string | null>(null);
     const [showDeliveryPartnerForm, setShowDeliveryPartnerForm] = useState(false);
     const [deliveryPartnerSaving, setDeliveryPartnerSaving] = useState(false);
     const [deliveryPartnerError, setDeliveryPartnerError] = useState("");
@@ -278,7 +282,7 @@ export default function AdminDashboard() {
             if (!token) return;
 
             try {
-                const [analyticsRes, ordersRes, menuRes, reservationsRes, screeningRes, deliveryPartnersRes, couponsRes, couponAnalyticsRes, promoBannersRes] = await Promise.all([
+                const [analyticsRes, ordersRes, menuRes, reservationsRes, screeningRes, deliveryPartnersRes, couponsRes, couponAnalyticsRes, promoBannersRes, notificationSettingsRes] = await Promise.all([
                     apiFetch<{ totalOrders: number; revenue: number; activeOrders: number; reservations: number; dailyHistory?: DailyHistoryItem[] }>("/api/admin/analytics?days=90", { token }),
                     apiFetch<Array<{ _id: string; totalAmount: number; status: string; createdAt: string; userId?: { name?: string }; items: Array<{ quantity: number; menuItemId?: { name?: string; price?: number } }> }>>("/api/orders?days=90", { token }),
                     apiFetch<AdminMenuItem[]>("/api/menu", { token, cache: "no-store" }),
@@ -288,6 +292,7 @@ export default function AdminDashboard() {
                     apiFetch<CouponItem[]>("/api/admin/coupons", { token }),
                     apiFetch<CouponAnalyticsResponse>("/api/admin/coupon-analytics", { token }),
                     apiFetch<PromoBannerItem[]>("/api/promo-banners", { token }),
+                    apiFetch<{ orderReceivedAlertPhone?: string; updatedAt?: string | null }>("/api/admin/notification-settings", { token }),
                 ]);
 
                 setAnalytics({
@@ -323,6 +328,8 @@ export default function AdminDashboard() {
                 setCoupons(couponsRes);
                 setCouponAnalytics(couponAnalyticsRes);
                 setPromoBanners(promoBannersRes);
+                setNotificationPhone(notificationSettingsRes.orderReceivedAlertPhone || "");
+                setNotificationSavedAt(notificationSettingsRes.updatedAt || null);
             } catch {
                 // Keep local fallback data.
             }
@@ -332,6 +339,12 @@ export default function AdminDashboard() {
 
         if (!socket.connected) {
             socket.connect();
+        }
+        // Join admins room on socket so server can send admin-targeted events
+        try {
+            socket.emit("join_admin");
+        } catch (e) {
+            // ignore
         }
 
         const handleOrderChanged = () => {
@@ -350,6 +363,32 @@ export default function AdminDashboard() {
     const handleLogout = () => {
         clearAuthSession();
         router.push("/admin-login");
+    };
+
+    const saveNotificationPhone = async () => {
+        const token = getAuthToken();
+        if (!token) {
+            setNotificationError("Admin session expired. Please login again.");
+            return;
+        }
+
+        setNotificationSaving(true);
+        setNotificationError("");
+
+        try {
+            const updated = await apiFetch<{ orderReceivedAlertPhone?: string; updatedAt?: string | null }>("/api/admin/notification-settings", {
+                method: "PUT",
+                token,
+                body: JSON.stringify({ orderReceivedAlertPhone: notificationPhone }),
+            });
+
+            setNotificationPhone(updated.orderReceivedAlertPhone || "");
+            setNotificationSavedAt(updated.updatedAt || null);
+        } catch (error) {
+            setNotificationError(error instanceof Error ? error.message : "Failed to save notification number");
+        } finally {
+            setNotificationSaving(false);
+        }
     };
 
     const handleAddMenuItem = async () => {
@@ -965,6 +1004,40 @@ export default function AdminDashboard() {
                 {/* ANALYTICS TAB */}
                 {activeTab === "analytics" && (
                     <div className="space-y-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.05 }}
+                            className="glass-card rounded-2xl border border-[#CFAF63]/25 p-6"
+                        >
+                            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                                <div>
+                                    <h3 className="font-(--font-heading) text-xl text-[#F5F5F5] mb-1">Order received notification number</h3>
+                                    <p className="text-sm text-[#999]">This number receives the WhatsApp alert when a new order is placed.</p>
+                                </div>
+                                <div className="flex flex-col gap-2 md:min-w-90 md:flex-row">
+                                    <input
+                                        value={notificationPhone}
+                                        onChange={(e) => setNotificationPhone(e.target.value)}
+                                        placeholder="+91XXXXXXXXXX"
+                                        className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none"
+                                    />
+                                    <button
+                                        onClick={() => void saveNotificationPhone()}
+                                        disabled={notificationSaving}
+                                        className="rounded-xl bg-linear-to-r from-[#CFAF63] to-[#FF6A00] px-5 py-3 text-sm font-semibold text-[#111] disabled:opacity-60"
+                                    >
+                                        {notificationSaving ? "Saving..." : "Save Number"}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[#999]">
+                                <span>Current: {notificationPhone || "Not set"}</span>
+                                {notificationSavedAt ? <span>Last saved: {new Date(notificationSavedAt).toLocaleString()}</span> : null}
+                            </div>
+                            {notificationError ? <p className="mt-3 text-sm text-rose-300">{notificationError}</p> : null}
+                        </motion.div>
+
                         {/* Analytics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                             {[
@@ -979,7 +1052,7 @@ export default function AdminDashboard() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.1 }}
-                                    className={`glass-card rounded-2xl border border-[#CFAF63]/25 p-6 bg-gradient-to-br ${card.color}/5`}
+                                    className={`glass-card rounded-2xl border border-[#CFAF63]/25 p-6 bg-linear-to-br ${card.color}/5`}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -1001,7 +1074,7 @@ export default function AdminDashboard() {
                         >
                             <div className="flex items-center justify-between gap-4">
                                 <div>
-                                    <h3 className="font-[var(--font-heading)] text-xl text-[#F5F5F5] mb-1">90-Day Order History</h3>
+                                    <h3 className="font-(--font-heading) text-xl text-[#F5F5F5] mb-1">90-Day Order History</h3>
                                     <p className="text-sm text-[#999]">Daily order counts and revenue update from live orders.</p>
                                 </div>
                                 <span className="rounded-full border border-[#CFAF63]/25 px-3 py-1 text-xs uppercase tracking-[0.14em] text-[#CFAF63]">

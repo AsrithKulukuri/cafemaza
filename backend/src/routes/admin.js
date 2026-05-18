@@ -6,10 +6,30 @@ import { Reservation } from "../models/Reservation.js";
 import { ScreeningBooking } from "../models/ScreeningBooking.js";
 import { Coupon } from "../models/Coupon.js";
 import { User } from "../models/User.js";
+import { NotificationSetting } from "../models/NotificationSetting.js";
 import { auth } from "../middlewares/auth.js";
 import { permit } from "../middlewares/roles.js";
 
 const router = express.Router();
+const ORDER_RECEIVED_ALERT_KEY = "order_received_alert_phone";
+
+function normalizeNotificationPhone(value) {
+    const digits = String(value || "").replace(/\D/g, "");
+
+    if (/^[6-9]\d{9}$/.test(digits)) {
+        return `+91${digits}`;
+    }
+
+    if (/^91[6-9]\d{9}$/.test(digits)) {
+        return `+${digits}`;
+    }
+
+    if (/^\+91[6-9]\d{9}$/.test(String(value || "").trim())) {
+        return String(value || "").trim();
+    }
+
+    return String(value || "").trim();
+}
 
 function normalizeCouponPayload(input = {}) {
     return {
@@ -168,6 +188,33 @@ function buildDailyHistory(startDate, days, aggregateRows) {
 router.get("/analytics", auth, permit("admin"), async (req, res, next) => {
     try {
         const historyDays = clampHistoryDays(req.query.days, 90);
+
+        // Try returning cached analytics if present and recent
+        try {
+            const { AnalyticsCache } = await import("../models/AnalyticsCache.js");
+            const cached = await AnalyticsCache.findOne({ days: historyDays }).lean();
+            if (cached && cached.generatedAt) {
+                const generated = new Date(cached.generatedAt);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (generated >= today) {
+                    return res.json({
+                        totalOrders: cached.totalOrders,
+                        revenue: cached.revenue,
+                        activeOrders: cached.activeOrders,
+                        reservations: cached.reservations,
+                        screenings: cached.screenings,
+                        historyDays: cached.days,
+                        historyStart: null,
+                        dailyHistory: cached.dailyHistory || [],
+                    });
+                }
+            }
+        } catch (cacheErr) {
+            // ignore cache errors and fall back to live compute
+        }
+
+        // Fallback: compute live (same logic as before)
         const historyStart = new Date();
         historyStart.setUTCDate(historyStart.getUTCDate() - (historyDays - 1));
         historyStart.setUTCHours(0, 0, 0, 0);
@@ -191,6 +238,11 @@ router.get("/analytics", auth, permit("admin"), async (req, res, next) => {
 
         const dailyHistory = buildDailyHistory(historyStart, historyDays, dailyHistoryRows);
 
+        // store to cache asynchronously
+        import("../jobs/computeAnalytics.js")
+            .then((mod) => mod.computeAndCacheAnalytics(historyDays).catch(() => { }))
+            .catch(() => { });
+
         return res.json({
             totalOrders,
             revenue: revenueData[0]?.revenue ?? 0,
@@ -200,6 +252,43 @@ router.get("/analytics", auth, permit("admin"), async (req, res, next) => {
             historyDays,
             historyStart,
             dailyHistory,
+        });
+    } catch (error) {
+        return next(error);
+    }
+});
+
+router.get("/notification-settings", auth, permit("admin"), async (req, res, next) => {
+    try {
+        const setting = await NotificationSetting.findOne({ key: ORDER_RECEIVED_ALERT_KEY }).lean();
+
+        return res.json({
+            orderReceivedAlertPhone: setting?.value || process.env.ORDER_RECEIVED_ALERT_PHONE || process.env.WHATSAPP_ADMIN_PHONE || "",
+            updatedAt: setting?.updatedAt || null,
+        });
+    } catch (error) {
+        return next(error);
+    }
+});
+
+router.put("/notification-settings", auth, permit("admin"), async (req, res, next) => {
+    try {
+        const orderReceivedAlertPhone = normalizeNotificationPhone(req.body?.orderReceivedAlertPhone);
+
+        const updated = await NotificationSetting.findOneAndUpdate(
+            { key: ORDER_RECEIVED_ALERT_KEY },
+            {
+                $set: {
+                    value: orderReceivedAlertPhone,
+                    updatedBy: req.user?._id,
+                },
+            },
+            { upsert: true, new: true, runValidators: true }
+        ).lean();
+
+        return res.json({
+            orderReceivedAlertPhone: updated?.value || "",
+            updatedAt: updated?.updatedAt || null,
         });
     } catch (error) {
         return next(error);

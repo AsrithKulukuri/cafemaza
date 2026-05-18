@@ -30,7 +30,6 @@ export const navLinks = [
     { label: "Screening", href: "/screening" },
     { label: "Reserve", href: "/reserve-table" },
     { label: "Order", href: "/order-online" },
-    { label: "Gallery", href: "/gallery" },
     { label: "Contact", href: "/contact" },
 ];
 
@@ -148,15 +147,6 @@ export const grillFeatures = [
     { title: "Fresh Ingredients", text: "Handpicked produce and premium cuts daily." },
     { title: "Family Dining", text: "Spacious luxury seating for family celebrations." },
     { title: "Chef Specials", text: "Signature marinades crafted by our master chefs." },
-];
-
-export const galleryImages = [
-    { src: "/images/gallery-grill.jpg", alt: "Grill cooking" },
-    { src: "/images/gallery-interior.jpg", alt: "Restaurant interior" },
-    { src: "/images/gallery-chef.jpg", alt: "Chef preparing food" },
-    { src: "/images/gallery-family.jpg", alt: "Family dining" },
-    { src: "/images/gallery-platter.jpg", alt: "Signature platter" },
-    { src: "/images/gallery-fire.jpg", alt: "Flame grilling" },
 ];
 
 export const premiumPhotos = [

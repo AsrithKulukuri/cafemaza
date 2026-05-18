@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api";
 import { clearAuthSession, getAuthToken, getAuthUser } from "@/lib/authToken";
 import { socket } from "@/lib/socket";
 import { QuickOrderPanel } from "@/components/staff/QuickOrderPanel";
+import { formatRelative } from "@/lib/time";
 
 type OrderStatus = "new" | "preparing" | "ready" | "out_for_delivery" | "completed";
 type ReservationStatus = "confirmed" | "completed" | "cancelled";
@@ -208,6 +209,13 @@ export default function StaffDashboard() {
         };
     }, []);
 
+    // refresh relative timestamps every minute
+    const [timeTick, setTimeTick] = useState(0);
+    useEffect(() => {
+        const id = setInterval(() => setTimeTick((t) => t + 1), 60 * 1000);
+        return () => clearInterval(id);
+    }, []);
+
     const handleLogout = () => {
         clearAuthSession();
         router.push("/staff-login");
@@ -396,9 +404,7 @@ export default function StaffDashboard() {
                                     <p className="mb-2 text-xs font-semibold text-[#CFAF63]">Delivery OTP: {order.deliveryOtp}</p>
                                 ) : null}
                                 <div className="mb-4 flex items-center justify-between border-b border-[#333] pb-4">
-                                    <p className="text-sm text-[#999]">
-                                        {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    </p>
+                                    <p className="text-sm text-[#999]">{formatRelative(order.createdAt)}</p>
                                     <p className="text-lg font-bold text-[#CFAF63]">₹{order.total}</p>
                                 </div>
 

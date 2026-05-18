@@ -7,6 +7,7 @@ import { Order } from "../models/Order.js";
 import { MenuItem } from "../models/MenuItem.js";
 import { Coupon } from "../models/Coupon.js";
 import { User } from "../models/User.js";
+import { NotificationSetting } from "../models/NotificationSetting.js";
 import { auth, optionalAuth } from "../middlewares/auth.js";
 import { permit } from "../middlewares/roles.js";
 import { getSocketIO } from "../config/socket.js";
@@ -15,6 +16,7 @@ import {
     sendMsg91DeliveryAssignedNotification,
     sendMsg91OrderAcceptedNotification,
     sendMsg91OrderDeliveredNotification,
+    sendMsg91OrderReceivedNotification,
     sendMsg91OrderPlacedNotification,
     sendMsg91OutForDeliveryNotification,
 } from "../utils/msg91Whatsapp.js";
@@ -336,6 +338,15 @@ function getOrderServiceAndQuantity(items, menuItems, requestedService) {
     return { service: service || "Food Order", quantity };
 }
 
+function itemsToSummary(menuItems, items) {
+    return items
+        .map((item) => {
+            const menu = menuItems.find((menuItem) => menuItem._id.toString() === String(item.menuItemId));
+            return `${menu?.name || "Menu Item"} x${item.quantity}`;
+        })
+        .join(", ");
+}
+
 function generateDeliveryOtp() {
     return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -361,14 +372,18 @@ function getAdminNotificationPhone(customerPhone) {
         return "";
     }
 
-    const normalizedAdmin = normalizeIndianPhone(adminPhone);
-    const normalizedCustomer = normalizeIndianPhone(customerPhone);
+    return adminPhone;
+}
 
-    if (normalizedAdmin && normalizedCustomer && normalizedAdmin === normalizedCustomer) {
+async function getConfiguredOrderReceivedAlertPhone(customerPhone) {
+    const setting = await NotificationSetting.findOne({ key: "order_received_alert_phone" }).lean();
+    const configuredPhone = String(setting?.value || process.env.ORDER_RECEIVED_ALERT_PHONE || process.env.WHATSAPP_ADMIN_PHONE || "").trim();
+
+    if (!configuredPhone) {
         return "";
     }
 
-    return adminPhone;
+    return configuredPhone;
 }
 
 async function createOrderFromPayload({ user, payload, paymentStatus, paymentProvider, paymentReference }) {
@@ -607,6 +622,22 @@ async function applyCouponFromRequest(req, res, next) {
 router.post("/apply-coupon", optionalAuth, applyCouponFromRequest);
 router.post("/apply-coupon/public", applyCouponFromRequest);
 
+// Dev-only: emit a test order_created event to connected clients
+if (process.env.NODE_ENV !== "production") {
+    router.post("/__debug/emit-order-created", (req, res) => {
+        const testOrder = {
+            _id: `debug_${Date.now()}`,
+            status: "placed",
+            createdAt: new Date().toISOString(),
+            totalAmount: 0,
+            items: [{ quantity: 1, name: "Debug Item" }],
+        };
+
+        getSocketIO()?.emit("order_created", testOrder);
+        return res.status(200).json({ ok: true, emitted: testOrder });
+    });
+}
+
 router.get("/best-coupon", optionalAuth, async (req, res, next) => {
     try {
         const subtotal = Number(req.query.subtotal || 0);
@@ -797,22 +828,48 @@ async function sendOrderWhatsAppNotifications({ createdOrder, user, payload, men
     });
 
     const { service, quantity } = getOrderServiceAndQuantity(payload.items, menuItems, payload.serviceType);
+    const orderReceivedAlertPhone = await getConfiguredOrderReceivedAlertPhone(customerTargetPhone);
 
-    const adminPhone = getAdminNotificationPhone(customerTargetPhone);
-    const adminResult = adminPhone
-        ? await sendMsg91OrderPlacedNotification({
+    let adminResult;
+    if (orderReceivedAlertPhone) {
+        logger.info("[MSG91 WhatsApp] Sending order received alert to configured admin number", {
+            orderId,
+            to: maskPhone(orderReceivedAlertPhone),
+            source: (await NotificationSetting.findOne({ key: "order_received_alert_phone" }).lean()) ? "database" : "environment",
+        });
+
+        adminResult = await sendMsg91OrderReceivedNotification({
             orderId: createdOrder._id,
             recipientType: "admin",
-            to: adminPhone,
+            to: orderReceivedAlertPhone,
             order: {
                 ...createdOrder.toObject(),
-                userId: { name: user.name },
-                customerPhone: customerTargetPhone,
-                service,
-                quantity,
+                userId: { name: user.name, email: user.email },
+                customerEmail: user.email,
+                itemSummary: itemsToSummary(menuItems, payload.items),
             },
-        })
-        : { ok: false, reason: "admin_phone_missing_or_same_as_customer" };
+        });
+    } else {
+        const adminPhone = getAdminNotificationPhone(customerTargetPhone);
+        logger.info("[MSG91 WhatsApp] Falling back to admin template notification", {
+            orderId,
+            to: maskPhone(adminPhone || ""),
+        });
+        adminResult = adminPhone
+            ? await sendMsg91OrderPlacedNotification({
+                orderId: createdOrder._id,
+                recipientType: "admin",
+                to: adminPhone,
+                order: {
+                    ...createdOrder.toObject(),
+                    userId: { name: user.name },
+                    customerPhone: customerTargetPhone,
+                    service,
+                    quantity,
+                },
+            })
+            : { ok: false, reason: "admin_phone_missing_or_same_as_customer" };
+    }
 
     logger.debug("[MSG91 WhatsApp] Admin notification result", {
         orderId,
@@ -823,7 +880,7 @@ async function sendOrderWhatsAppNotifications({ createdOrder, user, payload, men
 
     return {
         customer: { to: customerTargetPhone, ...customerResult },
-        admin: { to: adminPhone, ...adminResult },
+        admin: { to: orderReceivedAlertPhone || getAdminNotificationPhone(customerTargetPhone), ...adminResult },
     };
 }
 
@@ -1712,11 +1769,34 @@ router.put("/:id/status", auth, permit("admin", "staff", "manager", "bearer", "k
             console.error("WhatsApp status notification background send failed:", error);
         });
 
+        // Emit global event and also notify sockets in the specific order room and admin room
         getSocketIO()?.emit("order_status_updated", {
             orderId: updated._id,
             status: updated.status,
             order: updated,
         });
+
+        // Notify sockets that joined the order room (customers/delivery partners)
+        try {
+            getSocketIO()?.to(`order:${updated._id}`).emit("order_status_updated", {
+                orderId: updated._id,
+                status: updated.status,
+                order: updated,
+            });
+        } catch (e) {
+            // ignore
+        }
+
+        // Notify admin dashboards specifically if they joined the admins room
+        try {
+            getSocketIO()?.to("admins").emit("order_status_updated", {
+                orderId: updated._id,
+                status: updated.status,
+                order: updated,
+            });
+        } catch (e) {
+            // ignore
+        }
 
         return res.json({
             ...updated.toObject(),
