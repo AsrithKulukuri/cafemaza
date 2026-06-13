@@ -425,7 +425,7 @@ export default function CheckoutPage() {
     const minimumOrderMet = subtotal >= MINIMUM_ORDER;
     const discountAmount = minimumOrderMet ? Math.min(appliedCoupon?.discount || 0, subtotal) : 0;
     const deliveryCharge = minimumOrderMet ? (appliedCoupon?.delivery ?? DELIVERY_CHARGE) : 0;
-    const gstAmount = minimumOrderMet ? (subtotal - discountAmount + deliveryCharge) * GST_RATE : 0;
+    const gstAmount = minimumOrderMet ? (subtotal - discountAmount) * GST_RATE : 0;
     const total = subtotal - discountAmount + deliveryCharge + gstAmount;
     const minimumShortfall = Math.max(0, MINIMUM_ORDER - subtotal);
 

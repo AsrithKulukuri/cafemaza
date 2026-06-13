@@ -192,7 +192,7 @@ export function QuickOrderPanel() {
         ? (orderType === "delivery" ? (appliedCoupon?.delivery ?? DELIVERY_CHARGE) : 0)
         : 0;
     const discount = minimumOrderMet ? Math.min(appliedCoupon?.discount ?? 0, subtotal) : 0;
-    const gst = minimumOrderMet ? (subtotal - discount + delivery) * GST_RATE : 0;
+    const gst = minimumOrderMet ? (subtotal - discount) * GST_RATE : 0;
     const total = Math.max(0, subtotal - discount + delivery + gst);
 
     const addItem = (item: MenuItem) => {

@@ -96,7 +96,7 @@ export function calculateOrderPricingWithCoupon({ subtotal, coupon, applyDeliver
     }
 
     discount = Math.max(0, Math.min(roundToPaise(discount), safeSubtotal));
-    const taxableAmount = roundToPaise(safeSubtotal - discount + delivery);
+    const taxableAmount = roundToPaise(safeSubtotal - discount);
     const gst = isMinimumOrderMet ? roundToPaise(taxableAmount * GST_RATE) : 0;
     const total = roundToPaise(taxableAmount + gst);
     const shortfall = isMinimumOrderMet ? 0 : roundToPaise(MINIMUM_ORDER_AMOUNT - safeSubtotal);
