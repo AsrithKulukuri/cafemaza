@@ -909,16 +909,16 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="mx-auto grid max-w-6xl gap-6 lg:gap-8 px-3 sm:px-6 pb-20 md:grid-cols-[1.1fr_0.9fr] md:px-10">
-            <section className="glass-card rounded-3xl border border-[#CFAF63]/20 p-4 sm:p-7">
-                <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Checkout</p>
+        <div className="mx-auto w-full max-w-6xl gap-6 lg:gap-8 px-3 sm:px-6 pb-20 md:grid-cols-[1.1fr_0.9fr] md:px-10 grid">
+            <section className="glass-card rounded-2xl sm:rounded-3xl border border-[#CFAF63]/20 p-4 sm:p-7">
+                <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Checkout</p>
                 <h1 className="mt-1.5 font-(--font-heading) text-2xl sm:text-4xl text-[#F5F5F5]">Complete Your Order</h1>
 
                 <div className="mt-6">
                     <label className="block text-xs uppercase tracking-wider text-[#CFAF63] font-bold mb-2.5">Dining Preference</label>
                     <div className="grid grid-cols-2 gap-3">
-                        <button type="button" onClick={() => setOrderType("dine_in")} className={`flex items-center justify-center gap-2 rounded-2xl border p-3.5 text-sm font-bold transition cursor-pointer ${orderType === "dine_in" ? "border-[#CFAF63] bg-[#CFAF63]/15 text-[#CFAF63] shadow-lg ring-1 ring-[#CFAF63]" : "border-zinc-800 bg-[#121212] text-zinc-400 hover:border-zinc-700 hover:text-white"}`}>🍽️ Dine In</button>
-                        <button type="button" onClick={() => setOrderType("takeaway")} className={`flex items-center justify-center gap-2 rounded-2xl border p-3.5 text-sm font-bold transition cursor-pointer ${orderType === "takeaway" ? "border-[#FF6A00] bg-[#FF6A00]/15 text-[#FF6A00] shadow-lg ring-1 ring-[#FF6A00]" : "border-zinc-800 bg-[#121212] text-zinc-400 hover:border-zinc-700 hover:text-white"}`}>🛍️ Take Away</button>
+                        <button type="button" onClick={() => setOrderType("dine_in")} className={`flex items-center justify-center gap-2 rounded-2xl border p-3 sm:p-3.5 text-xs sm:text-sm font-bold transition cursor-pointer ${orderType === "dine_in" ? "border-[#CFAF63] bg-[#CFAF63]/15 text-[#CFAF63] shadow-lg ring-1 ring-[#CFAF63]" : "border-zinc-800 bg-[#121212] text-zinc-400 hover:border-zinc-700 hover:text-white"}`}>🍽️ Dine In</button>
+                        <button type="button" onClick={() => setOrderType("takeaway")} className={`flex items-center justify-center gap-2 rounded-2xl border p-3 sm:p-3.5 text-xs sm:text-sm font-bold transition cursor-pointer ${orderType === "takeaway" ? "border-[#FF6A00] bg-[#FF6A00]/15 text-[#FF6A00] shadow-lg ring-1 ring-[#FF6A00]" : "border-zinc-800 bg-[#121212] text-zinc-400 hover:border-zinc-700 hover:text-white"}`}>🛍️ Take Away</button>
                     </div>
                 </div>
 
@@ -928,7 +928,7 @@ export default function CheckoutPage() {
                         <input
                             value={form.name}
                             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm text-white"
                         />
                     </label>
                     <label className="block text-sm text-[#F5F5F5]/75">
@@ -936,19 +936,19 @@ export default function CheckoutPage() {
                         <input
                             value={form.phone}
                             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm text-white"
                         />
                     </label>
 
                     {orderType === "dine_in" && (
-                        <div className="space-y-4 rounded-2xl border border-purple-500/30 bg-purple-950/20 p-4">
+                        <div className="space-y-4 rounded-2xl border border-purple-500/30 bg-purple-950/20 p-3.5 sm:p-4">
                             <label className="block text-sm text-[#F5F5F5]/75">
                                 Table Number
-                                <input value={tableNumber} onChange={(e) => setTableNumber(e.target.value)} className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3" placeholder="e.g. Table 5" />
+                                <input value={tableNumber} onChange={(e) => setTableNumber(e.target.value)} className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm text-white" placeholder="e.g. Table 5" />
                             </label>
                             <label className="block text-sm text-[#F5F5F5]/75">
                                 Payment Mode
-                                <select value={dineInPaymentMode} onChange={(e) => setDineInPaymentMode(e.target.value as any)} className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3">
+                                <select value={dineInPaymentMode} onChange={(e) => setDineInPaymentMode(e.target.value as any)} className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm text-white">
                                     <option value="pay_now">Pay Now (Online)</option>
                                     <option value="pay_counter">Pay at Counter</option>
                                 </select>
@@ -960,7 +960,7 @@ export default function CheckoutPage() {
                         <>
                             <label className="block text-sm text-[#F5F5F5]/75">
                                 Address
-                                <div className="mt-2 flex flex-wrap items-center gap-3">
+                                <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-3">
                                     <button
                                         type="button"
                                         onClick={useCurrentAddress}
@@ -978,13 +978,13 @@ export default function CheckoutPage() {
                                             Use Saved Address
                                         </button>
                                     ) : null}
-                                    {locationMessage ? <span className="text-xs text-[#F5F5F5]/70">{locationMessage}</span> : null}
+                                    {locationMessage ? <span className="text-xs text-[#F5F5F5]/70 block w-full">{locationMessage}</span> : null}
                                 </div>
                                 <textarea
                                     rows={3}
                                     value={form.address}
                                     onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
-                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm text-white"
                                 />
                             </label>
                             {selectedPoint ? (
@@ -1002,7 +1002,7 @@ export default function CheckoutPage() {
                                     rows={2}
                                     value={form.instructions}
                                     onChange={(e) => setForm((prev) => ({ ...prev, instructions: e.target.value }))}
-                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm text-white"
                                     placeholder="Gate number, landmark, call on arrival..."
                                 />
                             </label>
@@ -1011,7 +1011,7 @@ export default function CheckoutPage() {
                                 <select
                                     value={form.payment}
                                     onChange={(e) => setForm((prev) => ({ ...prev, payment: e.target.value }))}
-                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm text-white"
                                 >
                                     <option value="UPI">UPI</option>
                                     <option value="Card">Card</option>
@@ -1023,8 +1023,8 @@ export default function CheckoutPage() {
                 </div>
             </section>
 
-            <aside className="glass-card h-fit rounded-3xl border border-[#CFAF63]/20 p-7">
-                <h2 className="font-(--font-heading) text-3xl text-[#F5F5F5]">Order Summary</h2>
+            <aside className="glass-card h-fit rounded-2xl sm:rounded-3xl border border-[#CFAF63]/20 p-4 sm:p-7 w-full overflow-hidden">
+                <h2 className="font-(--font-heading) text-2xl sm:text-3xl text-[#F5F5F5]">Order Summary</h2>
 
                 {membership ? (
                     <div className="mt-4 space-y-3">
@@ -1037,13 +1037,13 @@ export default function CheckoutPage() {
                                     setAppliedCoupon(null);
                                     setCouponMessage("");
                                 }}
-                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition cursor-pointer ${
+                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 px-2 sm:px-3 text-[11px] sm:text-xs font-bold transition cursor-pointer ${
                                     selectedOfferType === "membership"
                                         ? "bg-purple-600 text-white shadow-lg ring-1 ring-purple-400"
                                         : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
                                 }`}
                             >
-                                <span>💳 Member Pass ({membership.cardCode})</span>
+                                <span className="truncate">💳 Member ({membership.cardCode})</span>
                             </button>
 
                             <button
@@ -1051,36 +1051,36 @@ export default function CheckoutPage() {
                                 onClick={() => {
                                     setSelectedOfferType("coupon");
                                 }}
-                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition cursor-pointer ${
+                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 px-2 sm:px-3 text-[11px] sm:text-xs font-bold transition cursor-pointer ${
                                     selectedOfferType === "coupon"
                                         ? "bg-amber-500 text-black shadow-lg ring-1 ring-amber-400"
                                         : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
                                 }`}
                             >
-                                <span>🎟️ Promo Coupon</span>
+                                <span className="truncate">🎟️ Promo Coupon</span>
                             </button>
                         </div>
 
                         {/* 1. Membership Pass View */}
                         {selectedOfferType === "membership" && (
-                            <div className="overflow-hidden rounded-2xl border border-purple-500/40 bg-gradient-to-r from-purple-950/60 via-[#180a29] to-black p-4 shadow-lg space-y-3">
-                                <div className="flex items-start justify-between">
+                            <div className="overflow-hidden rounded-2xl border border-purple-500/40 bg-gradient-to-r from-purple-950/60 via-[#180a29] to-black p-3.5 sm:p-4 shadow-lg space-y-3">
+                                <div className="flex items-start justify-between gap-2">
                                     <div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="rounded-full bg-purple-500/20 px-2.5 py-0.5 font-mono text-xs font-bold text-purple-300 border border-purple-500/40">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="rounded-full bg-purple-500/20 px-2 py-0.5 font-mono text-[11px] font-bold text-purple-300 border border-purple-500/40">
                                                 {membership.cardCode}
                                             </span>
-                                            <span className="font-bold text-white text-sm">
-                                                {membership.cardType.toUpperCase()} PRIVILEGE PASS
+                                            <span className="font-bold text-white text-xs sm:text-sm">
+                                                {membership.cardType.toUpperCase()} PASS
                                             </span>
                                         </div>
-                                        <p className="text-xs text-zinc-400 mt-1">
+                                        <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
                                             {membership.cardType === "master"
-                                                ? `₹${remainingMasterCredit} / ₹${membership.yearlyDiscountLimit || 3000} Free Credit (1-Yr Validity)`
-                                                : `${membership.discountPercent}% Exclusive Member Discount`}
+                                                ? `₹${remainingMasterCredit} / ₹${membership.yearlyDiscountLimit || 3000} Credit`
+                                                : `${membership.discountPercent}% Member Discount`}
                                         </p>
                                     </div>
-                                    <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 border border-emerald-500/30">
+                                    <span className="shrink-0 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-emerald-400 border border-emerald-500/30">
                                         ACTIVE
                                     </span>
                                 </div>
@@ -1125,13 +1125,13 @@ export default function CheckoutPage() {
                                                 }`}
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <span className="font-bold">🏷️ 15% Member Discount</span>
+                                                    <span className="font-bold">🏷️ 15% Discount</span>
                                                     {(masterDiscountMode === "percent_15" || !isMasterCreditAvailable) && (
                                                         <span className="text-[10px] bg-purple-500 px-1.5 py-0.5 rounded text-white font-bold">Active</span>
                                                     )}
                                                 </div>
                                                 <p className="text-[10px] text-zinc-400 mt-1 font-normal">
-                                                    15% off cart subtotal
+                                                    15% off subtotal
                                                 </p>
                                             </button>
                                         </div>
@@ -1148,15 +1148,15 @@ export default function CheckoutPage() {
 
                         {/* 2. Coupon View (when user switched to Promo Coupon tab) */}
                         {selectedOfferType === "coupon" && (
-                            <div className="rounded-2xl border border-amber-500/30 bg-[#121212] p-4 space-y-3">
-                                <div className="flex items-center justify-between gap-2">
+                            <div className="rounded-2xl border border-amber-500/30 bg-[#121212] p-3 sm:p-4 space-y-3">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
                                     <p className="text-xs uppercase tracking-[0.14em] text-[#CFAF63] font-bold">Promo Coupon</p>
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setShowAvailableCoupons((prev) => !prev);
                                         }}
-                                        className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-[11px] text-[#CFAF63]"
+                                        className="shrink-0 rounded-full border border-[#CFAF63]/35 px-2.5 py-1 text-[11px] text-[#CFAF63] hover:border-[#FF6A00]"
                                     >
                                         {showAvailableCoupons ? "Hide Coupons" : "Available Coupons"}
                                     </button>
@@ -1168,13 +1168,13 @@ export default function CheckoutPage() {
                                     </p>
                                 ) : null}
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 w-full">
                                     <input
                                         value={couponInput}
                                         onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
                                         placeholder="Enter Coupon Code"
                                         disabled={Boolean(appliedCoupon)}
-                                        className="flex-1 rounded-xl border border-[#CFAF63]/25 bg-[#0F0F0F] px-3 py-2 text-sm text-[#F5F5F5] placeholder-[#777] disabled:opacity-70"
+                                        className="flex-1 min-w-0 rounded-xl border border-[#CFAF63]/25 bg-[#0F0F0F] px-3 py-2 text-xs sm:text-sm text-[#F5F5F5] placeholder-[#777] disabled:opacity-70"
                                     />
                                     <button
                                         type="button"
@@ -1182,7 +1182,7 @@ export default function CheckoutPage() {
                                             void applyCoupon();
                                         }}
                                         disabled={couponApplying || Boolean(appliedCoupon)}
-                                        className="rounded-xl border border-[#CFAF63]/35 px-4 py-2 text-sm text-[#CFAF63] disabled:opacity-60 font-semibold"
+                                        className="shrink-0 rounded-xl border border-[#CFAF63]/35 px-3 sm:px-4 py-2 text-xs sm:text-sm text-[#CFAF63] disabled:opacity-60 font-semibold"
                                     >
                                         {couponApplying ? "Applying..." : "Apply"}
                                     </button>
@@ -1193,7 +1193,7 @@ export default function CheckoutPage() {
                                                 setAppliedCoupon(null);
                                                 setCouponMessage("Coupon removed");
                                             }}
-                                            className="rounded-xl border border-rose-400/35 px-3 py-2 text-sm text-rose-300"
+                                            className="shrink-0 rounded-xl border border-rose-400/35 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-rose-300"
                                         >
                                             Remove
                                         </button>
@@ -1259,31 +1259,31 @@ export default function CheckoutPage() {
                     </div>
                 ) : (
                     /* Default Coupon Box for Non-Members */
-                    <div className="mt-4 rounded-2xl border border-[#CFAF63]/20 bg-[#121212] p-3">
-                        <div className="mb-2 flex items-center justify-between gap-2">
-                            <p className="text-xs uppercase tracking-[0.14em] text-[#CFAF63]">Coupon</p>
+                    <div className="mt-4 rounded-2xl border border-[#CFAF63]/20 bg-[#121212] p-3 sm:p-4 space-y-2.5">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-xs uppercase tracking-[0.14em] text-[#CFAF63] font-bold">Coupon</p>
                             <button
                                 type="button"
                                 onClick={() => {
                                     setShowAvailableCoupons((prev) => !prev);
                                 }}
-                                className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-[11px] text-[#CFAF63]"
+                                className="shrink-0 rounded-full border border-[#CFAF63]/35 px-2.5 py-1 text-[11px] text-[#CFAF63] hover:border-[#FF6A00]"
                             >
                                 {showAvailableCoupons ? "Hide Coupons" : "Available Coupons"}
                             </button>
                         </div>
                         {bestCoupon && !appliedCoupon ? (
-                            <p className="mb-2 text-xs text-[#4FE0A6]">
+                            <p className="text-xs text-[#4FE0A6]">
                                 Best Coupon Available: {bestCoupon.code} (Save ₹{formatCurrency(bestCoupon.discount)})
                             </p>
                         ) : null}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-full">
                             <input
                                 value={couponInput}
                                 onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
                                 placeholder="Enter Coupon Code"
                                 disabled={Boolean(appliedCoupon)}
-                                className="flex-1 rounded-xl border border-[#CFAF63]/25 bg-[#0F0F0F] px-3 py-2 text-sm text-[#F5F5F5] placeholder-[#777] disabled:opacity-70"
+                                className="flex-1 min-w-0 rounded-xl border border-[#CFAF63]/25 bg-[#0F0F0F] px-3 py-2 text-xs sm:text-sm text-[#F5F5F5] placeholder-[#777] disabled:opacity-70"
                             />
                             <button
                                 type="button"
@@ -1291,7 +1291,7 @@ export default function CheckoutPage() {
                                     void applyCoupon();
                                 }}
                                 disabled={couponApplying || Boolean(appliedCoupon)}
-                                className="rounded-xl border border-[#CFAF63]/35 px-4 py-2 text-sm text-[#CFAF63] disabled:opacity-60 font-semibold"
+                                className="shrink-0 rounded-xl border border-[#CFAF63]/35 px-3 sm:px-4 py-2 text-xs sm:text-sm text-[#CFAF63] disabled:opacity-60 font-semibold"
                             >
                                 {couponApplying ? "Applying..." : "Apply"}
                             </button>
@@ -1302,7 +1302,7 @@ export default function CheckoutPage() {
                                         setAppliedCoupon(null);
                                         setCouponMessage("Coupon removed");
                                     }}
-                                    className="rounded-xl border border-rose-400/35 px-3 py-2 text-sm text-rose-300"
+                                    className="shrink-0 rounded-xl border border-rose-400/35 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-rose-300"
                                 >
                                     Remove
                                 </button>
@@ -1363,67 +1363,67 @@ export default function CheckoutPage() {
                         ) : null}
                     </div>
                 )}
-                <ul className="mt-4 space-y-2 text-sm">
+                <ul className="mt-4 space-y-2 text-xs sm:text-sm">
                     {cart.length ? (
                         cart.map((item) => (
                             <li key={item.key ?? item.name} className="flex items-center justify-between rounded-lg bg-[#151515] px-3 py-2 text-[#F5F5F5]/85">
-                                <div>
-                                    <span>{item.name} x {item.qty}</span>
-                                    {item.selectedVariant ? <div className="text-xs text-[#F5F5F5]/65">{item.selectedVariant.name}</div> : null}
+                                <div className="pr-2">
+                                    <span className="font-medium">{item.name} x {item.qty}</span>
+                                    {item.selectedVariant ? <div className="text-[11px] text-[#F5F5F5]/65">{item.selectedVariant.name}</div> : null}
                                 </div>
-                                <span>₹{(item.selectedVariant?.price ?? item.price ?? 0) * item.qty}</span>
+                                <span className="font-semibold shrink-0">₹{(item.selectedVariant?.price ?? item.price ?? 0) * item.qty}</span>
                             </li>
                         ))
                     ) : (
                         <li className="text-[#F5F5F5]/60">No items in cart.</li>
                     )}
                 </ul>
-                <div className="mt-5 flex items-center justify-between border-t border-[#CFAF63]/15 pt-3">
+                <div className="mt-5 flex items-center justify-between border-t border-[#CFAF63]/15 pt-3 text-xs sm:text-sm">
                     <span className="text-[#F5F5F5]/75">Subtotal</span>
-                    <span className="text-[#F5F5F5]">₹{formatCurrency(subtotal)}</span>
+                    <span className="text-[#F5F5F5] font-semibold shrink-0">₹{formatCurrency(subtotal)}</span>
                 </div>
                 {/* STRICT MUTUAL EXCLUSIVITY: Show ONLY the single active discount */}
                 {isMembershipBenefitActive && membershipDiscountAmount > 0 && (
-                    <div className="mt-2 flex items-center justify-between text-purple-300">
-                        <span className="flex items-center gap-1.5 font-semibold">
+                    <div className="mt-2 flex items-center justify-between text-xs sm:text-sm text-purple-300">
+                        <span className="flex items-center gap-1.5 font-semibold truncate pr-2">
                             {membership?.cardType === "master" && masterDiscountMode === "credit_500" && isMasterCreditAvailable ? (
                                 <>💳 MASTER Free Credit</>
                             ) : (
                                 <>💳 {membership?.cardType.toUpperCase()} Card ({membership?.discountPercent}%)</>
                             )}
                         </span>
-                        <span className="text-emerald-400 font-mono font-bold">-₹{formatCurrency(membershipDiscountAmount)}</span>
+                        <span className="text-emerald-400 font-mono font-bold shrink-0">-₹{formatCurrency(membershipDiscountAmount)}</span>
                     </div>
                 )}
                 {isCouponActive && appliedCoupon && (
-                    <div className="mt-2 flex items-center justify-between text-emerald-300">
-                        <span className="flex items-center gap-1.5 font-semibold">
+                    <div className="mt-2 flex items-center justify-between text-xs sm:text-sm text-emerald-300">
+                        <span className="flex items-center gap-1.5 font-semibold truncate pr-2">
                             🎟️ Coupon ({appliedCoupon.code})
                         </span>
-                        <span className="text-emerald-400 font-mono font-bold">-₹{formatCurrency(appliedCoupon.discount)}</span>
+                        <span className="text-emerald-400 font-mono font-bold shrink-0">-₹{formatCurrency(appliedCoupon.discount)}</span>
                     </div>
                 )}
-                <div className="mt-2 flex items-center justify-between">
+                <div className="mt-2 flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-[#F5F5F5]/75">Total Discount</span>
-                    <span className="text-[#4FE0A6] font-mono font-bold">-₹{formatCurrency(discountAmount)}</span>
+                    <span className="text-[#4FE0A6] font-mono font-bold shrink-0">-₹{formatCurrency(discountAmount)}</span>
                 </div>
-                <div className="mt-2 flex items-center justify-between">
+                <div className="mt-2 flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-[#F5F5F5]/75">Delivery Charge</span>
-                    <span className="text-[#F5F5F5]">₹{formatCurrency(deliveryCharge)}</span>
+                    <span className="text-[#F5F5F5] font-semibold shrink-0">₹{formatCurrency(deliveryCharge)}</span>
                 </div>
-                <div className="mt-2 flex items-center justify-between">
+                <div className="mt-2 flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-[#F5F5F5]/75">GST (5%)</span>
-                    <span className="text-[#F5F5F5]">₹{formatCurrency(gstAmount)}</span>
+                    <span className="text-[#F5F5F5] font-semibold shrink-0">₹{formatCurrency(gstAmount)}</span>
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-[#CFAF63]/15 pt-3">
-                    <span className="text-[#F5F5F5]/75">Total Amount</span>
-                    <span className="text-2xl text-[#CFAF63]">₹{formatCurrency(total)}</span>
+                    <span className="text-sm sm:text-base font-semibold text-[#F5F5F5]/75">Total Amount</span>
+                    <span className="text-xl sm:text-2xl font-bold text-[#CFAF63] shrink-0">₹{formatCurrency(total)}</span>
                 </div>
                 {discountAmount > 0 ? (
                     <p className="mt-2 text-xs text-[#4FE0A6]">You saved ₹{formatCurrency(discountAmount)} on this order!</p>
                 ) : null}
                 {!minimumOrderMet && cart.length ? (
-                    <p className="mt-3 rounded-xl border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+                    <p className="mt-3 rounded-xl border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-xs sm:text-sm text-rose-200">
                         Minimum order is ₹99. Add ₹{formatCurrency(minimumShortfall)} more to continue.
                     </p>
                 ) : null}
@@ -1433,19 +1433,19 @@ export default function CheckoutPage() {
                 <button
                     onClick={placeOrder}
                     disabled={!cart.length || placing || !minimumOrderMet}
-                    className="mt-5 w-full rounded-full bg-linear-to-r from-[#CFAF63] via-[#FFD78B] to-[#FF6A00] px-4 py-3 font-semibold text-[#111] disabled:opacity-50 cursor-pointer shadow-lg hover:opacity-95 transition"
+                    className="mt-5 w-full rounded-full bg-linear-to-r from-[#CFAF63] via-[#FFD78B] to-[#FF6A00] px-4 py-3.5 font-bold text-sm sm:text-base text-[#111] disabled:opacity-50 cursor-pointer shadow-lg hover:opacity-95 transition active:scale-[0.98]"
                 >
                     {placing
                         ? "Processing..."
                         : orderType === "dine_in"
                             ? dineInPaymentMode === "pay_counter"
-                                ? `Confirm Dine-In · Pay ₹${formatCurrency(total)} at Counter`
+                                ? `Pay ₹${formatCurrency(total)} at Counter`
                                 : `Pay ₹${formatCurrency(total)} & Confirm Dine-In`
                             : form.payment === "Cash"
                                 ? `Place Takeaway Order (₹${formatCurrency(total)})`
                                 : `Pay ₹${formatCurrency(total)} & Place Order`}
                 </button>
-                {error ? <p className="mt-3 text-sm text-rose-300">{error}</p> : null}
+                {error ? <p className="mt-3 text-xs sm:text-sm text-rose-300">{error}</p> : null}
             </aside>
         </div>
     );

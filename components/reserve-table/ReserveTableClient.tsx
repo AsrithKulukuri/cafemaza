@@ -95,63 +95,63 @@ export function ReserveTableClient({ tables }: ReserveTableClientProps) {
     };
 
     return (
-        <div className="mx-auto grid max-w-7xl gap-8 px-6 pb-20 md:grid-cols-2 md:px-10">
-            <section className="glass-card rounded-3xl border border-[#CFAF63]/20 p-8">
-                <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Reserve Table</p>
-                <h1 className="mt-2 font-(--font-heading) text-4xl text-[#F5F5F5]">Plan Your<br />Luxury Dinner</h1>
+        <div className="mx-auto grid max-w-7xl gap-6 sm:gap-8 px-4 sm:px-6 pb-20 md:grid-cols-2 md:px-10">
+            <section className="glass-card rounded-2xl sm:rounded-3xl border border-[#CFAF63]/20 p-5 sm:p-8">
+                <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Reserve Table</p>
+                <h1 className="mt-1.5 font-(--font-heading) text-3xl sm:text-4xl text-[#F5F5F5]">Plan Your<br />Luxury Dinner</h1>
                 <div className="mt-2 h-px w-16 bg-linear-to-r from-[#CFAF63] to-transparent" />
-                <p className="mt-4 mb-6 text-sm text-[#F5F5F5]/70">Secure your perfect table for an unforgettable culinary experience at Cafe Maza.</p>
-                <form className="space-y-4">
-                    <label className="block text-sm text-[#F5F5F5]/75">
+                <p className="mt-3 mb-5 text-xs sm:text-sm text-[#F5F5F5]/70">Secure your perfect table for an unforgettable culinary experience at Cafe Maza.</p>
+                <form className="space-y-3.5 sm:space-y-4">
+                    <label className="block text-xs sm:text-sm text-[#F5F5F5]/75">
                         Name
                         <input
                             type="text"
                             value={form.name}
                             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 outline-none transition focus:border-[#FF6A00]"
+                            className="mt-1.5 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-[#FF6A00]"
                         />
                         {submitted && !form.name ? <span className="mt-1 block text-xs text-[#FF6A00]">Name is required.</span> : null}
                     </label>
-                    <label className="block text-sm text-[#F5F5F5]/75">
+                    <label className="block text-xs sm:text-sm text-[#F5F5F5]/75">
                         Phone
                         <input
                             type="tel"
                             value={form.phone}
                             onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 outline-none transition focus:border-[#FF6A00]"
+                            className="mt-1.5 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-[#FF6A00]"
                         />
                         {submitted && !form.phone ? <span className="mt-1 block text-xs text-[#FF6A00]">Phone is required.</span> : null}
                     </label>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <label className="block text-sm text-[#F5F5F5]/75">
+                    <div className="grid gap-3.5 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                        <label className="block text-xs sm:text-sm text-[#F5F5F5]/75">
                             Number of people
                             <select
                                 value={form.guests}
                                 onChange={(event) => setForm((prev) => ({ ...prev, guests: event.target.value }))}
-                                className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 outline-none transition focus:border-[#FF6A00]"
+                                className="mt-1.5 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-[#FF6A00]"
                             >
                                 {[1, 2, 3, 4].map((count) => (
                                     <option key={count} value={count.toString()}>{count}</option>
                                 ))}
                             </select>
                         </label>
-                        <label className="block text-sm text-[#F5F5F5]/75">
+                        <label className="block text-xs sm:text-sm text-[#F5F5F5]/75">
                             Date
                             <input
                                 type="date"
                                 value={form.date}
                                 onChange={(event) => setForm((prev) => ({ ...prev, date: event.target.value }))}
-                                className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 outline-none transition focus:border-[#FF6A00]"
+                                className="mt-1.5 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-[#FF6A00]"
                             />
                             {submitted && !form.date ? <span className="mt-1 block text-xs text-[#FF6A00]">Date is required.</span> : null}
                         </label>
                     </div>
-                    <label className="block text-sm text-[#F5F5F5]/75">
+                    <label className="block text-xs sm:text-sm text-[#F5F5F5]/75">
                         Time slot
                         <select
                             value={form.time}
                             onChange={(event) => setForm((prev) => ({ ...prev, time: event.target.value }))}
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 outline-none transition focus:border-[#FF6A00]"
+                            className="mt-1.5 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-[#FF6A00]"
                         >
                             <option value="">Select a slot</option>
                             {timeSlots.map((slot) => (
@@ -169,17 +169,17 @@ export function ReserveTableClient({ tables }: ReserveTableClientProps) {
                                     : "All tables are currently available for this slot."}
                         </p>
                     ) : null}
-                    <label className="block text-sm text-[#F5F5F5]/75">
+                    <label className="block text-xs sm:text-sm text-[#F5F5F5]/75">
                         Special Request
                         <textarea
                             rows={3}
                             value={form.request}
                             onChange={(event) => setForm((prev) => ({ ...prev, request: event.target.value }))}
                             placeholder="Birthday setup, high chair, window seat..."
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 outline-none transition focus:border-[#FF6A00]"
+                            className="mt-1.5 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-[#FF6A00]"
                         />
                     </label>
-                    <LuxuryButton className="w-full py-3" onClick={submitReservation}>
+                    <LuxuryButton className="w-full py-3 min-h-[44px]" onClick={submitReservation}>
                         {saving ? "Saving..." : "Confirm Reservation"}
                     </LuxuryButton>
                     {submitted && !selectedTable ? <p className="text-xs text-[#FF6A00]">Select a table to continue.</p> : null}
@@ -187,9 +187,10 @@ export function ReserveTableClient({ tables }: ReserveTableClientProps) {
                 </form>
             </section>
 
-            <section className="glass-card rounded-3xl border border-[#CFAF63]/20 p-7">
-                <h2 className="font-(--font-heading) text-3xl text-[#F5F5F5]">Select Your Table</h2>
-                <div className="mt-5 grid grid-cols-3 gap-4">
+            <section className="glass-card rounded-2xl sm:rounded-3xl border border-[#CFAF63]/20 p-5 sm:p-7">
+                <h2 className="font-(--font-heading) text-2xl sm:text-3xl text-[#F5F5F5]">Select Your Table</h2>
+                <p className="mt-1 text-xs text-[#F5F5F5]/65">Choose your preferred seating area below.</p>
+                <div className="mt-4 sm:mt-5 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                     {tables.map((table) => (
                         <button
                             key={table.id}
@@ -202,16 +203,16 @@ export function ReserveTableClient({ tables }: ReserveTableClientProps) {
                                 setSelectedTable(table.id);
                             }}
                             disabled={bookedTables.includes(table.id)}
-                            className={`rounded-2xl border p-4 text-center transition ${selectedTable === table.id
+                            className={`rounded-2xl border p-3 sm:p-4 text-center transition cursor-pointer min-h-[88px] flex flex-col items-center justify-center ${selectedTable === table.id
                                 ? "border-[#FF6A00] bg-[#FF6A00]/20 shadow-[0_0_18px_rgba(255,106,0,0.45)]"
                                 : bookedTables.includes(table.id)
                                     ? "border-rose-400/35 bg-rose-500/10 opacity-70 cursor-not-allowed"
-                                    : "border-[#CFAF63]/20 bg-[#161616] hover:-translate-y-1"
+                                    : "border-[#CFAF63]/20 bg-[#161616] hover:-translate-y-0.5 active:scale-95"
                                 }`}
                         >
-                            <p className="font-(--font-heading) text-2xl">T{table.id}</p>
-                            <p className="text-xs text-[#F5F5F5]/70">{table.seats} Seats</p>
-                            {bookedTables.includes(table.id) ? <p className="mt-1 text-[10px] font-semibold text-rose-300">Already booked</p> : null}
+                            <p className="font-(--font-heading) text-xl sm:text-2xl">T{table.id}</p>
+                            <p className="text-[11px] sm:text-xs text-[#F5F5F5]/70">{table.seats} Seats</p>
+                            {bookedTables.includes(table.id) ? <p className="mt-0.5 text-[9px] sm:text-[10px] font-semibold text-rose-300">Booked</p> : null}
                         </button>
                     ))}
                 </div>
@@ -220,7 +221,7 @@ export function ReserveTableClient({ tables }: ReserveTableClientProps) {
             <AnimatePresence>
                 {showConfirmation ? (
                     <motion.div
-                        className="fixed inset-0 z-90 grid place-items-center bg-black/70 p-6"
+                        className="fixed inset-0 z-90 grid place-items-center bg-black/70 p-4 sm:p-6"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -229,13 +230,13 @@ export function ReserveTableClient({ tables }: ReserveTableClientProps) {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="glass-card w-full max-w-md rounded-2xl border border-[#CFAF63]/30 p-7 text-center"
+                            className="glass-card w-full max-w-md rounded-2xl border border-[#CFAF63]/30 p-6 sm:p-7 text-center"
                         >
-                            <h3 className="font-(--font-heading) text-3xl text-[#F5F5F5]">Reservation Confirmed</h3>
-                            <p className="mt-3 text-sm text-[#F5F5F5]/75">Table T{selectedTable} is reserved for {form.name}. We look forward to serving you.</p>
+                            <h3 className="font-(--font-heading) text-2xl sm:text-3xl text-[#F5F5F5]">Reservation Confirmed</h3>
+                            <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm text-[#F5F5F5]/75 leading-relaxed">Table T{selectedTable} is reserved for {form.name}. We look forward to serving you.</p>
                             <button
                                 onClick={() => setShowConfirmation(false)}
-                                className="mt-5 rounded-full border border-[#CFAF63]/35 px-5 py-2 text-sm"
+                                className="mt-4 sm:mt-5 rounded-full border border-[#CFAF63]/35 px-5 py-2.5 text-xs sm:text-sm min-h-[40px] font-semibold"
                             >
                                 Close
                             </button>

@@ -253,32 +253,32 @@ export default function BearerDashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0B0B0B] p-6">
+        <div className="min-h-screen bg-[#0B0B0B] p-3.5 sm:p-6 pt-16 sm:pt-20 pb-16">
             <div className="mx-auto max-w-7xl">
-                <div className="mb-6 flex items-center justify-between">
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
-                        <p className="text-xs uppercase tracking-[0.2em] text-[#CFAF63]">Bearer Order Taking</p>
-                        <h1 className="font-(--font-heading) text-4xl text-[#F5F5F5]">{staffName}</h1>
-                        <p className="mt-1 text-sm text-[#9A9A9A]">{"Select table, take order, send to kitchen, then pick next table."}</p>
+                        <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-[#CFAF63]">Bearer Order Taking</p>
+                        <h1 className="font-(--font-heading) text-2xl sm:text-4xl text-[#F5F5F5] mt-0.5">{staffName}</h1>
+                        <p className="mt-1 text-xs sm:text-sm text-[#9A9A9A]">{"Select table, take order, send to kitchen, then pick next table."}</p>
                     </motion.div>
 
-                    <button onClick={logout} className="inline-flex items-center gap-2 rounded-full border border-[#FF6A00]/40 bg-[#FF6A00]/15 px-4 py-2 text-sm text-[#FFB37A]">
-                        <LogOut size={16} /> Logout
+                    <button onClick={logout} className="self-start sm:self-auto inline-flex items-center gap-2 rounded-full border border-[#FF6A00]/40 bg-[#FF6A00]/15 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-[#FFB37A] min-h-[38px] cursor-pointer">
+                        <LogOut size={15} /> Logout
                     </button>
                 </div>
 
                 {error ? (
-                    <div className="mb-4 rounded-xl border border-[#FF6A00]/35 bg-[#FF6A00]/10 px-4 py-3 text-sm text-[#FFD6B8]">{error}</div>
+                    <div className="mb-4 rounded-xl border border-[#FF6A00]/35 bg-[#FF6A00]/10 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-[#FFD6B8]">{error}</div>
                 ) : null}
                 {notice ? (
-                    <div className="mb-4 rounded-xl border border-[#00D98E]/35 bg-[#00D98E]/10 px-4 py-3 text-sm text-[#A7F6D3]">{notice}</div>
+                    <div className="mb-4 rounded-xl border border-[#00D98E]/35 bg-[#00D98E]/10 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-[#A7F6D3]">{notice}</div>
                 ) : null}
 
-                <div className="mb-6 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-2xl border border-[#2E2E2E] bg-[#101010] p-4">
-                        <div className="mb-2 flex items-center gap-2 text-[#CFAF63]"><UtensilsCrossed size={16} /> Active Tables</div>
+                <div className="mb-6 grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2">
+                    <div className="rounded-2xl border border-[#2E2E2E] bg-[#101010] p-3.5 sm:p-4">
+                        <div className="mb-2 flex items-center gap-2 text-xs sm:text-sm text-[#CFAF63] font-semibold"><UtensilsCrossed size={15} /> Active Tables</div>
                         {activeTables.length === 0 ? (
-                            <p className="text-sm text-[#9A9A9A]">No active dine-in tables right now.</p>
+                            <p className="text-xs sm:text-sm text-[#9A9A9A]">No active dine-in tables right now.</p>
                         ) : (
                             <div className="grid grid-cols-2 gap-2">
                                 {activeTables.map((table) => (
@@ -293,12 +293,12 @@ export default function BearerDashboardPage() {
                                         onTouchCancel={cancelLongPress}
                                         onContextMenu={(event) => event.preventDefault()}
                                         disabled={completingTable === table.tableNumber}
-                                        className={`rounded-xl border bg-[#141414] px-3 py-2 text-left ${pressingTable === table.tableNumber ? "border-[#00D98E]" : "border-[#3B3B3B]"} disabled:opacity-60`}
+                                        className={`rounded-xl border bg-[#141414] p-2.5 sm:px-3 sm:py-2 text-left ${pressingTable === table.tableNumber ? "border-[#00D98E]" : "border-[#3B3B3B]"} disabled:opacity-60 cursor-pointer min-h-[64px]`}
                                     >
-                                        <p className="text-sm font-semibold text-[#F5F5F5]">Table {table.tableNumber}</p>
-                                        <p className="text-xs text-[#B7B7B7]">{table.activeOrders} active</p>
-                                        <p className="mt-1 text-[10px] text-[#8C8C8C]">
-                                            {completingTable === table.tableNumber ? "Completing..." : pressingTable === table.tableNumber ? "Release to cancel, keep holding to complete" : "Long press to mark completed"}
+                                        <p className="text-xs sm:text-sm font-semibold text-[#F5F5F5]">Table {table.tableNumber}</p>
+                                        <p className="text-[11px] sm:text-xs text-[#B7B7B7]">{table.activeOrders} active</p>
+                                        <p className="mt-0.5 text-[9px] sm:text-[10px] text-[#8C8C8C] leading-tight">
+                                            {completingTable === table.tableNumber ? "Completing..." : pressingTable === table.tableNumber ? "Release to cancel, hold to complete" : "Long press to complete"}
                                         </p>
                                     </button>
                                 ))}
@@ -306,16 +306,16 @@ export default function BearerDashboardPage() {
                         )}
                     </div>
 
-                    <div className="rounded-2xl border border-[#2E2E2E] bg-[#101010] p-4">
-                        <p className="mb-2 text-sm font-semibold text-[#CFAF63]">Kitchen Status by Table</p>
+                    <div className="rounded-2xl border border-[#2E2E2E] bg-[#101010] p-3.5 sm:p-4">
+                        <p className="mb-2 text-xs sm:text-sm font-semibold text-[#CFAF63]">Kitchen Status by Table</p>
                         {tableStatuses.length === 0 ? (
-                            <p className="text-sm text-[#9A9A9A]">No table orders in kitchen queue.</p>
+                            <p className="text-xs sm:text-sm text-[#9A9A9A]">No table orders in kitchen queue.</p>
                         ) : (
                             <div className="space-y-2">
                                 {tableStatuses.map((row) => (
-                                    <div key={row.tableNumber} className="flex items-center justify-between rounded-xl border border-[#3A3A3A] bg-[#141414] px-3 py-2">
-                                        <span className="text-sm text-[#F5F5F5]">Table {row.tableNumber}</span>
-                                        <span className="text-xs text-[#CFAF63]">{statusLabel[row.status] || row.status}</span>
+                                    <div key={row.tableNumber} className="flex items-center justify-between rounded-xl border border-[#3A3A3A] bg-[#141414] px-3 py-2 text-xs sm:text-sm">
+                                        <span className="text-[#F5F5F5]">Table {row.tableNumber}</span>
+                                        <span className="text-[#CFAF63] font-medium">{statusLabel[row.status] || row.status}</span>
                                     </div>
                                 ))}
                             </div>

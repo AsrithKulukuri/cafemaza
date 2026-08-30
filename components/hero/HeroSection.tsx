@@ -58,7 +58,7 @@ export function HeroSection() {
     const greeting = hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
 
     return (
-        <section ref={sectionRef} className="relative isolate h-screen min-h-[760px] overflow-hidden section-fade-edge">
+        <section ref={sectionRef} className="relative isolate min-h-[100dvh] sm:min-h-[760px] overflow-hidden section-fade-edge flex items-center justify-center">
             {/* Static gradient - no JS animation on background-position */}
             <motion.div
                 className="absolute inset-0"
@@ -96,44 +96,46 @@ export function HeroSection() {
 
             <motion.div
                 style={{ y: contentY, opacity: contentOpacity, willChange: "transform, opacity" }}
-                className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-center justify-center px-6 text-center"
+                className="relative z-10 mx-auto flex h-full w-full max-w-6xl flex-col items-center justify-center px-4 sm:px-6 py-20 text-center"
             >
-                <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="mb-5 rounded-full border border-[#D4AF37]/20 bg-[#111111]/55 px-4 py-2 text-xs tracking-[0.24em] text-[#D4AF37] backdrop-blur-md">
+                <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="mb-4 sm:mb-5 rounded-full border border-[#D4AF37]/20 bg-[#111111]/55 px-3.5 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs tracking-[0.2em] sm:tracking-[0.24em] text-[#D4AF37] backdrop-blur-md">
                     {greeting} • CafeMaza Khammam
                 </motion.p>
 
                 <AnimatedHeading
                     as="h1"
                     lines={["Where Fire", "Meets Flavor"]}
-                    className="max-w-4xl font-(--font-heading) text-5xl leading-[1.15] tracking-[0.04em] md:text-7xl shimmer-text"
+                    className="max-w-4xl font-(--font-heading) text-4xl sm:text-6xl md:text-7xl leading-[1.12] tracking-[0.03em] shimmer-text"
                 />
 
                 <motion.p
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.95, delay: 0.2, ease: "easeOut" }}
-                    className="mt-6 max-w-2xl text-base tracking-[0.08em] text-[#F5F5F5]/85 md:text-lg leading-relaxed"
+                    className="mt-4 sm:mt-6 max-w-2xl text-xs sm:text-base md:text-lg tracking-[0.04em] sm:tracking-[0.08em] text-[#F5F5F5]/85 leading-relaxed"
                 >
                     An immersive live grill &amp; authentic biryani dining experience in V.Venkatayapalem, Khammam
                 </motion.p>
 
-                <div className="relative mt-12 flex flex-col items-center gap-5 sm:flex-row sm:justify-center">
+                <div className="relative mt-8 sm:mt-12 flex w-full max-w-md flex-col items-center gap-3 sm:max-w-none sm:flex-row sm:justify-center sm:gap-5">
                     <div className="pointer-events-none absolute inset-0 -z-10 mx-auto h-32 w-80 rounded-full bg-[radial-gradient(circle,rgba(255,106,0,0.55),transparent_68%)] blur-3xl animate-pulse" />
                     <motion.div
                         whileHover={{ scale: 1.05 }}
+                        className="w-full sm:w-auto"
                         animate={{ boxShadow: ["0_0_14px_rgba(255,106,0,0.16)", "0_0_32px_rgba(255,106,0,0.38)", "0_0_14px_rgba(255,106,0,0.16)"] }}
                         transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", repeatDelay: 1.5 }}
                     >
-                        <LuxuryButton href="/reserve-table" className="min-w-[185px] px-8 py-3 text-sm md:text-base">
+                        <LuxuryButton href="/reserve-table" className="w-full sm:min-w-[185px] px-6 sm:px-8 py-3 text-xs sm:text-sm md:text-base">
                             Reserve Experience
                         </LuxuryButton>
                     </motion.div>
                     <motion.div
                         whileHover={{ scale: 1.05 }}
+                        className="w-full sm:w-auto"
                         animate={{ boxShadow: ["0_0_20px_rgba(207,175,99,0.2)", "0_0_40px_rgba(207,175,99,0.35)", "0_0_20px_rgba(207,175,99,0.2)"] }}
                         transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", repeatDelay: 1.5, delay: 0.2 }}
                     >
-                        <LuxuryButton href="/menu" className="min-w-[185px] px-8 py-3 text-sm md:text-base bg-gradient-to-r from-[#CFAF63]/80 to-[#CFAF63]">
+                        <LuxuryButton href="/menu" className="w-full sm:min-w-[185px] px-6 sm:px-8 py-3 text-xs sm:text-sm md:text-base bg-gradient-to-r from-[#CFAF63]/80 to-[#CFAF63]">
                             Explore Menu
                         </LuxuryButton>
                     </motion.div>

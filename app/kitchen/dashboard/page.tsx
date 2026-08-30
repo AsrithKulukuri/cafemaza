@@ -204,76 +204,76 @@ export default function KitchenDashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0B0B0B] p-6">
+        <div className="min-h-screen bg-[#0B0B0B] p-3.5 sm:p-6 pt-16 sm:pt-20 pb-16">
             <div className="mx-auto max-w-7xl">
-                <div className="mb-6 flex items-center justify-between gap-3">
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-                        <p className="text-xs uppercase tracking-[0.2em] text-[#CFAF63]">Kitchen Display System</p>
-                        <h1 className="font-(--font-heading) text-4xl text-[#F5F5F5]">Hello, {staffName}</h1>
+                        <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-[#CFAF63]">Kitchen Display System</p>
+                        <h1 className="font-(--font-heading) text-2xl sm:text-4xl text-[#F5F5F5] mt-0.5">Hello, {staffName}</h1>
                     </motion.div>
 
-                    <button onClick={logout} className="inline-flex items-center gap-2 rounded-full border border-[#FF6A00]/40 bg-[#FF6A00]/15 px-4 py-2 text-sm text-[#FFB37A]">
-                        <LogOut size={16} /> Logout
+                    <button onClick={logout} className="self-start sm:self-auto inline-flex items-center gap-2 rounded-full border border-[#FF6A00]/40 bg-[#FF6A00]/15 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-[#FFB37A] min-h-[38px] cursor-pointer">
+                        <LogOut size={15} /> Logout
                     </button>
                 </div>
 
                 {error ? (
-                    <div className="mb-4 rounded-xl border border-[#FF6A00]/40 bg-[#FF6A00]/10 px-4 py-3 text-sm text-[#FFD2AF]">
+                    <div className="mb-4 rounded-xl border border-[#FF6A00]/40 bg-[#FF6A00]/10 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-[#FFD2AF]">
                         {error}
                     </div>
                 ) : null}
 
-                <div className="mb-4 grid gap-3 md:grid-cols-3">
+                <div className="mb-4 grid gap-2.5 sm:gap-3 grid-cols-3">
                     {(["new", "preparing", "ready"] as KitchenTab[]).map((item) => (
                         <button
                             key={item}
                             type="button"
                             onClick={() => setTab(item)}
-                            className={`rounded-xl border px-4 py-3 text-left ${tab === item ? "border-[#CFAF63] bg-[#CFAF63]/15 text-[#F5F5F5]" : "border-[#2D2D2D] bg-[#121212] text-[#B8B8B8]"}`}
+                            className={`rounded-xl border p-2.5 sm:px-4 sm:py-3 text-left cursor-pointer min-h-[56px] ${tab === item ? "border-[#CFAF63] bg-[#CFAF63]/15 text-[#F5F5F5]" : "border-[#2D2D2D] bg-[#121212] text-[#B8B8B8]"}`}
                         >
-                            <p className="text-sm uppercase tracking-[0.15em]">{tabLabel[item]}</p>
-                            <p className="mt-1 text-xs">{orders.filter((order) => order.status === tabToStatus(item)).length} orders</p>
+                            <p className="text-[11px] sm:text-sm uppercase tracking-[0.1em] sm:tracking-[0.15em] font-semibold">{tabLabel[item]}</p>
+                            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs">{orders.filter((order) => order.status === tabToStatus(item)).length} orders</p>
                         </button>
                     ))}
                 </div>
 
                 {loading ? (
-                    <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-6 text-sm text-[#B8B8B8]">Loading kitchen queue...</div>
+                    <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-5 sm:p-6 text-xs sm:text-sm text-[#B8B8B8]">Loading kitchen queue...</div>
                 ) : visibleOrders.length === 0 ? (
-                    <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-6 text-sm text-[#B8B8B8]">No orders in this queue.</div>
+                    <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-5 sm:p-6 text-xs sm:text-sm text-[#B8B8B8]">No orders in this queue.</div>
                 ) : (
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                         {visibleOrders.map((order) => (
-                            <div key={order.id} className="rounded-2xl border border-[#2D2D2D] bg-[#121212] p-4">
+                            <div key={order.id} className="rounded-2xl border border-[#2D2D2D] bg-[#121212] p-3.5 sm:p-4">
                                 <div className="mb-3 flex items-start justify-between gap-2">
                                     <div>
-                                        <p className="text-sm uppercase tracking-[0.15em] text-[#CFAF63]">Order #{order.id.slice(-6).toUpperCase()}</p>
-                                        <p className="text-xs text-[#B8B8B8]">{formatRelative(order.createdAt)}</p>
+                                        <p className="text-xs sm:text-sm uppercase tracking-[0.15em] text-[#CFAF63] font-mono">Order #{order.id.slice(-6).toUpperCase()}</p>
+                                        <p className="text-[11px] sm:text-xs text-[#B8B8B8]">{formatRelative(order.createdAt)}</p>
                                     </div>
-                                    <span className="rounded-full border border-[#CFAF63]/40 px-2 py-1 text-xs text-[#CFAF63]">
+                                    <span className="rounded-full border border-[#CFAF63]/40 px-2 py-0.5 text-[11px] sm:text-xs text-[#CFAF63]">
                                         {order.orderType ? orderTypeLabel[order.orderType] : "Order"}
                                     </span>
                                 </div>
 
-                                <div className="mb-3 space-y-1 text-xs text-[#B8B8B8]">
-                                    {order.tableNumber ? <p>Table: {order.tableNumber}</p> : null}
+                                <div className="mb-3 space-y-0.5 text-[11px] sm:text-xs text-[#B8B8B8]">
+                                    {order.tableNumber ? <p>Table: <strong className="text-white">{order.tableNumber}</strong></p> : null}
                                     {order.customerPhone ? <p>Phone: {order.customerPhone}</p> : null}
                                     {order.address ? <p>Address: {order.address}</p> : null}
-                                    {order.specialInstructions ? <p>Note: {order.specialInstructions}</p> : null}
+                                    {order.specialInstructions ? <p className="text-amber-300">Note: {order.specialInstructions}</p> : null}
                                 </div>
 
-                                <div className="mb-3 rounded-xl bg-[#0D0D0D] p-3">
-                                    <p className="mb-2 text-xs uppercase tracking-[0.15em] text-[#8A8A8A]">Items</p>
-                                    <div className="space-y-1 text-sm text-[#F5F5F5]">
+                                <div className="mb-3 rounded-xl bg-[#0D0D0D] p-2.5 sm:p-3">
+                                    <p className="mb-1.5 text-[10px] sm:text-xs uppercase tracking-[0.15em] text-[#8A8A8A]">Items</p>
+                                    <div className="space-y-1 text-xs sm:text-sm text-[#F5F5F5]">
                                         {order.items.map((item, idx) => (
                                             <p key={`${order.id}-${idx}`}>{item.quantity} x {item.name}</p>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="mb-3 flex items-center justify-between text-sm text-[#D4D4D4]">
+                                <div className="mb-3 flex items-center justify-between text-xs sm:text-sm text-[#D4D4D4]">
                                     <span className="inline-flex items-center gap-1"><ChefHat size={14} /> Kitchen total</span>
-                                    <span>₹{order.totalAmount.toFixed(2)}</span>
+                                    <span className="font-semibold text-white">₹{order.totalAmount.toFixed(2)}</span>
                                 </div>
 
                                 <div className="flex flex-wrap gap-2">
@@ -282,7 +282,7 @@ export default function KitchenDashboardPage() {
                                             type="button"
                                             onClick={() => void updateStatus(order.id, "preparing")}
                                             disabled={actionKey === `${order.id}:preparing`}
-                                            className="inline-flex items-center gap-1 rounded-full bg-[#CFAF63] px-3 py-2 text-xs font-semibold text-[#111] disabled:opacity-60"
+                                            className="inline-flex items-center gap-1 rounded-full bg-[#CFAF63] px-3.5 py-1.5 sm:py-2 text-xs font-semibold text-[#111] disabled:opacity-60 min-h-[36px] cursor-pointer"
                                         >
                                             <Clock3 size={14} /> Accept
                                         </button>
@@ -293,7 +293,7 @@ export default function KitchenDashboardPage() {
                                             type="button"
                                             onClick={() => void updateStatus(order.id, "ready")}
                                             disabled={actionKey === `${order.id}:ready`}
-                                            className="inline-flex items-center gap-1 rounded-full bg-[#00D98E] px-3 py-2 text-xs font-semibold text-[#0A291B] disabled:opacity-60"
+                                            className="inline-flex items-center gap-1 rounded-full bg-[#00D98E] px-3.5 py-1.5 sm:py-2 text-xs font-semibold text-[#0A291B] disabled:opacity-60 min-h-[36px] cursor-pointer"
                                         >
                                             <CheckCircle2 size={14} /> Mark Ready
                                         </button>
@@ -302,7 +302,7 @@ export default function KitchenDashboardPage() {
                                     <button
                                         type="button"
                                         onClick={() => setRefreshTick((prev) => prev + 1)}
-                                        className="inline-flex items-center gap-1 rounded-full border border-[#444] px-3 py-2 text-xs text-[#D4D4D4]"
+                                        className="inline-flex items-center gap-1 rounded-full border border-[#444] px-3 py-1.5 sm:py-2 text-xs text-[#D4D4D4] min-h-[36px] cursor-pointer"
                                     >
                                         <RefreshCw size={13} /> Refresh
                                     </button>

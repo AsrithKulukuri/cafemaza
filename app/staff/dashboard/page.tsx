@@ -310,29 +310,29 @@ export default function StaffDashboard() {
     if (!staffInfo) return null;
 
     return (
-        <div className="min-h-screen bg-[#0B0B0B] p-6">
-            <div className="mb-8 flex items-center justify-between">
+        <div className="min-h-screen bg-[#0B0B0B] p-3.5 sm:p-6 pt-16 sm:pt-20 pb-16">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                    <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Welcome,</p>
-                    <h1 className="font-(--font-heading) text-4xl text-[#F5F5F5]">{staffInfo.name}</h1>
-                    <p className="mt-1 text-sm text-[#999]">Staff ID: {staffInfo.staffId}</p>
+                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-[#CFAF63]">Welcome,</p>
+                    <h1 className="font-(--font-heading) text-2xl sm:text-4xl text-[#F5F5F5] mt-0.5">{staffInfo.name}</h1>
+                    <p className="mt-0.5 text-xs sm:text-sm text-[#999]">Staff ID: {staffInfo.staffId}</p>
                 </motion.div>
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 rounded-full bg-[#FF6A00]/20 px-4 py-2 text-[#FF6A00] transition hover:bg-[#FF6A00]/30"
+                    className="self-start sm:self-auto flex items-center gap-2 rounded-full bg-[#FF6A00]/20 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-[#FF6A00] transition hover:bg-[#FF6A00]/30 min-h-[38px] cursor-pointer"
                 >
-                    <LogOut size={18} />
+                    <LogOut size={16} />
                     Logout
                 </button>
             </div>
 
             {error && (
-                <div className="mb-6 rounded-xl border border-[#FF6A00]/35 bg-[#FF6A00]/10 p-3 text-sm text-[#FFC79A]">
+                <div className="mb-4 sm:mb-6 rounded-xl border border-[#FF6A00]/35 bg-[#FF6A00]/10 p-3 text-xs sm:text-sm text-[#FFC79A]">
                     {error}
                 </div>
             )}
 
-            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="mb-6 sm:mb-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
                 {orderTabs.map((tab) => {
                     const count = orders.filter((order) => order.status === tab).length;
                     const config = statusConfig[tab];
@@ -341,14 +341,14 @@ export default function StaffDashboard() {
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`rounded-2xl border p-4 text-left transition ${activeTab === tab ? `border-[#CFAF63] ${config.bg}` : "border-[#333] hover:border-[#CFAF63]/40"}`}
+                            className={`rounded-xl sm:rounded-2xl border p-3 sm:p-4 text-left transition cursor-pointer min-h-[64px] ${activeTab === tab ? `border-[#CFAF63] ${config.bg}` : "border-[#333] hover:border-[#CFAF63]/40"}`}
                         >
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-1">
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.15em] text-[#999]">{config.label}</p>
-                                    <p className={`mt-2 text-3xl font-bold ${config.color}`}>{count}</p>
+                                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.15em] text-[#999]">{config.label}</p>
+                                    <p className={`mt-1 sm:mt-2 text-xl sm:text-3xl font-bold ${config.color}`}>{count}</p>
                                 </div>
-                                <Icon className={config.color} size={24} />
+                                <Icon className={`${config.color} shrink-0`} size={20} />
                             </div>
                         </button>
                     );
@@ -356,7 +356,7 @@ export default function StaffDashboard() {
             </div>
 
             <section>
-                <h2 className="mb-4 font-(--font-heading) text-2xl text-[#F5F5F5]">{statusConfig[activeTab].label}</h2>
+                <h2 className="mb-3 sm:mb-4 font-(--font-heading) text-xl sm:text-2xl text-[#F5F5F5]">{statusConfig[activeTab].label}</h2>
                 {isLoading ? (
                     <div className="rounded-2xl border border-[#333] p-8 text-center text-[#999]">Loading orders...</div>
                 ) : currentOrders.length === 0 ? (

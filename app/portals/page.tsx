@@ -55,22 +55,22 @@ const portals = [
 
 export default function PortalsPage() {
     return (
-        <div className="min-h-screen bg-[#0B0B0B] p-6">
+        <div className="min-h-screen bg-[#0B0B0B] p-4 sm:p-6 pt-16 sm:pt-20 pb-16">
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-12 mt-8"
+                className="text-center mb-8 sm:mb-12 mt-4 sm:mt-8"
             >
-                <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Café Maza Portals</p>
-                <h1 className="font-[var(--font-heading)] text-5xl text-[#F5F5F5] mt-2">Welcome</h1>
-                <p className="text-[#999] mt-4 max-w-2xl mx-auto">
+                <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Café Maza Portals</p>
+                <h1 className="font-[var(--font-heading)] text-3xl sm:text-5xl text-[#F5F5F5] mt-1.5">Welcome</h1>
+                <p className="text-xs sm:text-sm text-[#999] mt-2 sm:mt-4 max-w-2xl mx-auto leading-relaxed">
                     Access different portals based on your role. Choose your portal to get started.
                 </p>
             </motion.div>
 
             {/* Portals Grid */}
-            <motion.div layout className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <motion.div layout className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
                 {portals.map((portal, idx) => {
                     const Icon = portal.icon;
                     return (
@@ -79,27 +79,27 @@ export default function PortalsPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.1 }}
-                            className={`glass-card rounded-3xl border border-[#CFAF63]/25 p-8 hover:border-[#CFAF63]/50 transition bg-gradient-to-br ${portal.color}/5`}
+                            className={`glass-card rounded-2xl sm:rounded-3xl border border-[#CFAF63]/25 p-5 sm:p-8 hover:border-[#CFAF63]/50 transition bg-gradient-to-br ${portal.color}/5`}
                         >
                             {/* Icon & Title */}
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className={`p-3 rounded-xl bg-gradient-to-br ${portal.color} to-[#FF6A00] text-white`}>
-                                    <Icon size={28} />
+                            <div className="flex items-start gap-3 sm:gap-4 mb-4">
+                                <div className={`p-2.5 sm:p-3 rounded-xl bg-gradient-to-br ${portal.color} to-[#FF6A00] text-white shrink-0`}>
+                                    <Icon size={24} className="sm:w-7 sm:h-7" />
                                 </div>
-                                <div className="flex-1">
-                                    <h2 className="font-[var(--font-heading)] text-2xl text-[#F5F5F5]">{portal.title}</h2>
-                                    <p className="text-sm text-[#999] mt-1">{portal.description}</p>
+                                <div className="flex-1 min-w-0">
+                                    <h2 className="font-[var(--font-heading)] text-xl sm:text-2xl text-[#F5F5F5]">{portal.title}</h2>
+                                    <p className="text-xs sm:text-sm text-[#999] mt-1 leading-relaxed">{portal.description}</p>
                                 </div>
                             </div>
 
                             {/* Links */}
-                            <div className="flex gap-3 flex-wrap">
+                            <div className="flex gap-2.5 sm:gap-3 flex-wrap">
                                 {portal.links.map((link) => (
                                     <Link
                                         key={link.href}
                                         href={link.href}
-                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${link.label.includes("Login") || link.label.includes("Sign Up")
-                                            ? `bg-gradient-to-r ${portal.color} to-[#FF6A00] text-[#111] hover:shadow-lg`
+                                        className={`px-3.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition min-h-[38px] inline-flex items-center justify-center ${link.label.includes("Login") || link.label.includes("Sign Up")
+                                            ? `bg-gradient-to-r ${portal.color} to-[#FF6A00] text-[#111] hover:shadow-lg font-bold`
                                             : "border border-[#CFAF63]/25 text-[#CFAF63] hover:bg-[#CFAF63]/10"
                                             }`}
                                     >
@@ -117,25 +117,25 @@ export default function PortalsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="max-w-2xl mx-auto glass-card rounded-2xl border border-[#CFAF63]/25 p-6 bg-[#CFAF63]/5"
+                className="max-w-2xl mx-auto glass-card rounded-2xl border border-[#CFAF63]/25 p-4 sm:p-6 bg-[#CFAF63]/5"
             >
-                <h3 className="font-[var(--font-heading)] text-lg text-[#F5F5F5] mb-4">📝 Demo Credentials</h3>
-                <div className="space-y-3 text-sm">
+                <h3 className="font-[var(--font-heading)] text-base sm:text-lg text-[#F5F5F5] mb-3">📝 Demo Credentials</h3>
+                <div className="space-y-2.5 text-xs sm:text-sm">
                     <div>
                         <p className="text-[#999]">All portals accept any credentials for demo purposes:</p>
                         <p className="text-[#CFAF63] font-mono mt-1">ID: Any value (e.g., CHEF001, DEL001, ADMIN001)</p>
                         <p className="text-[#CFAF63] font-mono">Password: Any value</p>
                     </div>
-                    <div className="pt-3 border-t border-[#CFAF63]/25">
-                        <p className="text-[#999] mb-2">For customer portal:</p>
+                    <div className="pt-2.5 border-t border-[#CFAF63]/25">
+                        <p className="text-[#999] mb-1">For customer portal:</p>
                         <p className="text-[#CFAF63]">Email: any@email.com | Password: any</p>
                     </div>
                 </div>
             </motion.div>
 
             {/* Back to Home */}
-            <div className="text-center mt-8">
-                <Link href="/" className="text-[#CFAF63] hover:text-[#FF6A00] transition text-sm">
+            <div className="text-center mt-6 sm:mt-8">
+                <Link href="/" className="text-[#CFAF63] hover:text-[#FF6A00] transition text-xs sm:text-sm inline-flex items-center min-h-[40px] px-3">
                     ← Back to Home
                 </Link>
             </div>

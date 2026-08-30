@@ -294,81 +294,81 @@ export default function ProfilePage() {
     const currentTheme = membership ? cardThemes[membership.cardType] : null;
 
     return (
-        <main className="mx-auto max-w-3xl px-4 py-28 text-[#F5F5F5] space-y-8">
+        <main className="mx-auto max-w-3xl px-4 sm:px-6 py-20 sm:py-28 text-[#F5F5F5] space-y-6 sm:space-y-8">
             {/* 1. DIGITAL MEMBERSHIP CARD (If Assigned) */}
             {membership && currentTheme ? (
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="space-y-4"
+                    className="space-y-3 sm:space-y-4"
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-[#CFAF63]" />
-                            <h2 className="font-[var(--font-heading)] text-2xl text-white">
-                                Your Membership & Loyalty Pass
+                            <Sparkles className="h-5 w-5 text-[#CFAF63] shrink-0" />
+                            <h2 className="font-[var(--font-heading)] text-xl sm:text-2xl text-white">
+                                Your Membership Pass
                             </h2>
                         </div>
-                        <span className={`rounded-full border px-3 py-0.5 text-xs font-bold uppercase tracking-wider ${currentTheme.badge}`}>
+                        <span className={`rounded-full border px-2.5 sm:px-3 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider ${currentTheme.badge}`}>
                             {membership.status}
                         </span>
                     </div>
 
                     {/* Luxury Physical-Style Card Widget */}
-                    <div className={`relative overflow-hidden rounded-3xl border ${currentTheme.border} bg-gradient-to-br ${currentTheme.bg} p-6 sm:p-8 shadow-2xl space-y-6`}>
+                    <div className={`relative overflow-hidden rounded-2xl sm:rounded-3xl border ${currentTheme.border} bg-gradient-to-br ${currentTheme.bg} p-4 sm:p-6 sm:p-8 shadow-2xl space-y-5 sm:space-y-6`}>
                         {/* Background Luxury Glow */}
                         <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[#CFAF63]/10 blur-3xl" />
 
                         {/* Top Card Bar */}
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 relative z-10">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 sm:gap-3 relative z-10">
                             <div>
-                                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#CFAF63]">
+                                <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-[#CFAF63]">
                                     Café Maza Privilege Club
                                 </p>
-                                <h3 className="font-[var(--font-heading)] text-2xl sm:text-3xl text-white mt-1">
+                                <h3 className="font-[var(--font-heading)] text-xl sm:text-2xl md:text-3xl text-white mt-0.5">
                                     {currentTheme.title}
                                 </h3>
                             </div>
-                            <span className="self-start sm:self-auto font-mono text-lg sm:text-2xl font-black text-white tracking-widest bg-black/40 px-3.5 py-1.5 rounded-xl border border-white/10">
+                            <span className="self-start sm:self-auto font-mono text-base sm:text-xl md:text-2xl font-black text-white tracking-widest bg-black/40 px-3 py-1 rounded-xl border border-white/10">
                                 {membership.cardCode}
                             </span>
                         </div>
 
                         {/* Middle Stats Bar */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 relative z-10">
-                            <div className="rounded-2xl border border-white/10 bg-black/40 p-3">
-                                <p className="text-[10px] uppercase text-zinc-400">Discount</p>
-                                <p className="text-xl font-bold text-white font-mono">{membership.discountPercent}% Off</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 relative z-10">
+                            <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-black/40 p-2.5 sm:p-3">
+                                <p className="text-[9px] sm:text-[10px] uppercase text-zinc-400">Discount</p>
+                                <p className="text-base sm:text-xl font-bold text-white font-mono">{membership.discountPercent}% Off</p>
                             </div>
-                            <div className="rounded-2xl border border-amber-500/30 bg-amber-950/20 p-3">
-                                <p className="text-[10px] uppercase text-amber-400 flex items-center gap-1">
-                                    <Coins className="h-3 w-3" /> Loyalty Points
+                            <div className="rounded-xl sm:rounded-2xl border border-amber-500/30 bg-amber-950/20 p-2.5 sm:p-3">
+                                <p className="text-[9px] sm:text-[10px] uppercase text-amber-400 flex items-center gap-1">
+                                    <Coins className="h-3 w-3 shrink-0" /> Loyalty Points
                                 </p>
-                                <p className="text-xl font-bold text-amber-300 font-mono">{membership.pointsBalance}</p>
+                                <p className="text-base sm:text-xl font-bold text-amber-300 font-mono">{membership.pointsBalance}</p>
                             </div>
-                            <div className="rounded-2xl border border-white/10 bg-black/40 p-3">
-                                <p className="text-[10px] uppercase text-zinc-400">Total Visits</p>
-                                <p className="text-xl font-bold text-white font-mono">{membership.totalVisits}</p>
+                            <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-black/40 p-2.5 sm:p-3">
+                                <p className="text-[9px] sm:text-[10px] uppercase text-zinc-400">Total Visits</p>
+                                <p className="text-base sm:text-xl font-bold text-white font-mono">{membership.totalVisits}</p>
                             </div>
-                            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-3">
-                                <p className="text-[10px] uppercase text-emerald-400">Savings</p>
-                                <p className="text-xl font-bold text-emerald-300 font-mono">₹{membership.totalDiscountClaimed}</p>
+                            <div className="rounded-xl sm:rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-2.5 sm:p-3">
+                                <p className="text-[9px] sm:text-[10px] uppercase text-emerald-400">Savings</p>
+                                <p className="text-base sm:text-xl font-bold text-emerald-300 font-mono">₹{membership.totalDiscountClaimed}</p>
                             </div>
                         </div>
 
                         {/* Master Card Yearly Credit Pool Meter */}
                         {membership.cardType === "master" && (
-                            <div className="rounded-2xl border border-purple-500/30 bg-purple-950/30 p-4 space-y-2.5 relative z-10">
-                                <div className="flex items-center justify-between text-xs">
+                            <div className="rounded-xl sm:rounded-2xl border border-purple-500/30 bg-purple-950/30 p-3 sm:p-4 space-y-2 relative z-10">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1">
                                     <span className="font-semibold text-purple-300 flex items-center gap-1.5">
-                                        <Sparkles className="h-3.5 w-3.5 text-purple-400" />
+                                        <Sparkles className="h-3.5 w-3.5 text-purple-400 shrink-0" />
                                         1-Year Free Credit Pool (₹3,000)
                                     </span>
-                                    <span className="font-bold text-white font-mono">
+                                    <span className="font-bold text-white font-mono text-[11px] sm:text-xs">
                                         ₹{(membership.yearlyDiscountLimit || 3000) - (membership.yearlyDiscountUsed || 0)} / ₹{membership.yearlyDiscountLimit || 3000} Available
                                     </span>
                                 </div>
-                                <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-900">
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-900">
                                     <div
                                         className="h-full bg-gradient-to-r from-purple-500 to-[#CFAF63] transition-all duration-500"
                                         style={{
@@ -376,12 +376,12 @@ export default function ProfilePage() {
                                         }}
                                     />
                                 </div>
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-zinc-400 gap-1">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[10px] sm:text-[11px] text-zinc-400 gap-1">
                                     <span>
                                         Used: <strong className="text-zinc-300">₹{membership.yearlyDiscountUsed || 0}</strong>
                                     </span>
                                     <span className="text-purple-300">
-                                        ⚡ At checkout: Choose <strong>₹500 Off</strong> from credit pool or <strong>15% Discount</strong>
+                                        ⚡ At checkout: Choose <strong>₹500 Off</strong> or <strong>15% Discount</strong>
                                     </span>
                                 </div>
                             </div>
@@ -389,23 +389,23 @@ export default function ProfilePage() {
 
                         {/* Master Card Referral Share Code */}
                         {membership.referralCode && (
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-purple-500/40 bg-purple-950/40 p-4 relative z-10">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 rounded-xl sm:rounded-2xl border border-purple-500/40 bg-purple-950/40 p-3 sm:p-4 relative z-10">
                                 <div>
                                     <div className="flex items-center gap-1.5 text-xs font-bold text-purple-300">
-                                        <Gift className="h-4 w-4" /> Share Your Master Referral Code
+                                        <Gift className="h-4 w-4 shrink-0" /> Share Your Master Referral Code
                                     </div>
-                                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                                    <p className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5">
                                         Friends get up to 15% off on first visit, and you earn 100 points!
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="rounded-xl border border-purple-500/50 bg-black/60 px-3.5 py-1.5 font-mono text-sm font-bold text-white">
+                                    <span className="rounded-xl border border-purple-500/50 bg-black/60 px-3 py-1 font-mono text-xs sm:text-sm font-bold text-white">
                                         {membership.referralCode}
                                     </span>
                                     <button
                                         type="button"
                                         onClick={handleCopyReferral}
-                                        className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-purple-500 transition"
+                                        className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-3 py-1 text-xs font-bold text-white hover:bg-purple-500 transition min-h-[36px]"
                                     >
                                         {copiedRef ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                         {copiedRef ? "Copied" : "Copy"}
@@ -417,13 +417,13 @@ export default function ProfilePage() {
                         {/* Card Barcode Footer */}
                         <div className="flex items-center justify-between pt-2 border-t border-white/10 relative z-10">
                             <div>
-                                <p className="text-[10px] uppercase tracking-wider text-zinc-400">Cardholder</p>
-                                <p className="font-bold text-white text-sm">{name || "Valued Member"}</p>
+                                <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-400">Cardholder</p>
+                                <p className="font-bold text-white text-xs sm:text-sm">{name || "Valued Member"}</p>
                             </div>
 
                             {/* 1D Barcode Pattern Visualizer */}
                             <div className="flex flex-col items-end">
-                                <div className="flex h-7 items-stretch gap-[2px] bg-white/90 p-1 rounded">
+                                <div className="flex h-6 sm:h-7 items-stretch gap-[2px] bg-white/90 p-1 rounded">
                                     {[2, 4, 1, 3, 2, 5, 1, 4, 2, 3, 5, 1, 3, 2, 4, 1, 3, 2, 5, 2, 1, 4, 2].map((w, i) => (
                                         <span
                                             key={i}
@@ -432,7 +432,7 @@ export default function ProfilePage() {
                                         />
                                     ))}
                                 </div>
-                                <span className="font-mono text-[9px] text-zinc-400 mt-0.5 tracking-widest">
+                                <span className="font-mono text-[8px] sm:text-[9px] text-zinc-400 mt-0.5 tracking-widest">
                                     {membership.cardCode}
                                 </span>
                             </div>
@@ -442,17 +442,17 @@ export default function ProfilePage() {
             ) : null}
 
             {/* 2. PROFILE SETTINGS & DELIVERY ADDRESS */}
-            <div className="rounded-3xl border border-[#CFAF63]/25 bg-[#111]/70 p-6 md:p-8">
-                <h1 className="font-(--font-heading) text-3xl">My Profile</h1>
-                <p className="mt-2 text-sm text-[#F5F5F5]/70">Update your details and save a default delivery address for faster checkout. Phone number is locked after verification.</p>
+            <div className="rounded-2xl sm:rounded-3xl border border-[#CFAF63]/25 bg-[#111]/70 p-5 sm:p-6 md:p-8">
+                <h1 className="font-(--font-heading) text-2xl sm:text-3xl">My Profile</h1>
+                <p className="mt-1.5 text-xs sm:text-sm text-[#F5F5F5]/70">Update your details and save a default delivery address for faster checkout. Phone number is locked after verification.</p>
 
-                <form onSubmit={handleSave} className="mt-6 space-y-4">
+                <form onSubmit={handleSave} className="mt-5 sm:mt-6 space-y-3.5 sm:space-y-4">
                     <label className="block">
                         <span className="mb-1 block text-xs uppercase tracking-wide text-[#CFAF63]">Name</span>
                         <input
                             value={name}
                             onChange={(event) => setName(event.target.value)}
-                            className="w-full rounded-xl border border-[#CFAF63]/20 bg-[#121212] px-4 py-3"
+                            className="w-full rounded-xl border border-[#CFAF63]/20 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none focus:border-[#FF6A00]"
                             placeholder="Your name"
                         />
                     </label>
@@ -463,7 +463,7 @@ export default function ProfilePage() {
                             type="email"
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
-                            className="w-full rounded-xl border border-[#CFAF63]/20 bg-[#121212] px-4 py-3"
+                            className="w-full rounded-xl border border-[#CFAF63]/20 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none focus:border-[#FF6A00]"
                             placeholder="you@example.com"
                         />
                     </label>
@@ -473,19 +473,19 @@ export default function ProfilePage() {
                         <input
                             value={phone}
                             readOnly
-                            className="w-full rounded-xl border border-[#CFAF63]/20 bg-[#171717] px-4 py-3 text-[#F5F5F5]/70 font-mono"
+                            className="w-full rounded-xl border border-[#CFAF63]/20 bg-[#171717] px-3.5 sm:px-4 py-2.5 sm:py-3 text-[#F5F5F5]/70 font-mono text-xs sm:text-sm"
                             placeholder="+919876543210 or 9876543210"
                         />
                     </label>
 
                     <label className="block">
-                        <div className="mb-1 flex items-center justify-between gap-3">
+                        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                             <span className="block text-xs uppercase tracking-wide text-[#CFAF63]">Saved Delivery Address</span>
                             <button
                                 type="button"
                                 onClick={() => void handleUseCurrentLocation()}
                                 disabled={locatingAddress}
-                                className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-[11px] text-[#CFAF63] hover:border-[#FF6A00] hover:text-[#FF6A00] disabled:opacity-60"
+                                className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-[10px] sm:text-[11px] text-[#CFAF63] hover:border-[#FF6A00] hover:text-[#FF6A00] disabled:opacity-60 cursor-pointer min-h-[30px]"
                             >
                                 {locatingAddress ? "Detecting..." : "Use Current Location"}
                             </button>
@@ -494,11 +494,11 @@ export default function ProfilePage() {
                             rows={3}
                             value={savedAddress}
                             onChange={(event) => setSavedAddress(event.target.value)}
-                            className="w-full rounded-xl border border-[#CFAF63]/20 bg-[#121212] px-4 py-3"
+                            className="w-full rounded-xl border border-[#CFAF63]/20 bg-[#121212] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm outline-none focus:border-[#FF6A00]"
                             placeholder="House no, street, landmark"
                         />
                         {savedLocation ? (
-                            <p className="mt-2 text-xs text-[#F5F5F5]/65">
+                            <p className="mt-1.5 text-[11px] sm:text-xs text-[#F5F5F5]/65">
                                 Coordinates: {savedLocation.latitude.toFixed(6)}, {savedLocation.longitude.toFixed(6)}
                             </p>
                         ) : null}
@@ -507,14 +507,14 @@ export default function ProfilePage() {
                     <button
                         type="submit"
                         disabled={busy}
-                        className="rounded-full bg-linear-to-r from-[#CFAF63] to-[#FF6A00] px-6 py-2.5 text-sm font-semibold text-[#111] disabled:opacity-70"
+                        className="w-full sm:w-auto min-h-[44px] rounded-full bg-linear-to-r from-[#CFAF63] to-[#FF6A00] px-6 py-2.5 text-xs sm:text-sm font-semibold text-[#111] disabled:opacity-70 cursor-pointer"
                     >
                         {busy ? "Saving..." : "Save Profile"}
                     </button>
                 </form>
 
-                {info ? <p className="mt-4 text-sm text-emerald-300">{info}</p> : null}
-                {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
+                {info ? <p className="mt-4 text-xs sm:text-sm text-emerald-300">{info}</p> : null}
+                {error ? <p className="mt-2 text-xs sm:text-sm text-rose-300">{error}</p> : null}
             </div>
         </main>
     );

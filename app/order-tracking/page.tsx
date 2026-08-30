@@ -253,15 +253,15 @@ export default function OrderTrackingPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="max-w-2xl mx-auto glass-card rounded-3xl border border-[#CFAF63]/25 p-8"
+                className="max-w-2xl mx-auto glass-card rounded-2xl sm:rounded-3xl border border-[#CFAF63]/25 p-4 sm:p-8"
             >
                 {/* Progress Bar */}
-                <div className="mb-8">
+                <div className="mb-6 sm:mb-8">
                     <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm text-[#999]">Overall Progress</p>
-                        <p className="text-sm font-semibold text-[#CFAF63]">{completedStages}/{totalStages} Complete</p>
+                        <p className="text-xs sm:text-sm text-[#999]">Overall Progress</p>
+                        <p className="text-xs sm:text-sm font-semibold text-[#CFAF63]">{completedStages}/{totalStages} Complete</p>
                     </div>
-                    <div className="w-full bg-[#1A1A1A] rounded-full h-3 overflow-hidden">
+                    <div className="w-full bg-[#1A1A1A] rounded-full h-2.5 sm:h-3 overflow-hidden">
                         <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${progressPercent}%` }}
@@ -272,19 +272,19 @@ export default function OrderTrackingPage() {
                 </div>
 
                 {/* Timeline */}
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                     {trackingData.map((stage, idx) => (
                         <motion.div
                             key={idx}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.1 }}
-                            className="flex gap-6"
+                            className="flex gap-3 sm:gap-6"
                         >
                             {/* Timeline Dot & Line */}
-                            <div className="flex flex-col items-center relative">
+                            <div className="flex flex-col items-center relative flex-shrink-0">
                                 <motion.div
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center text-xl relative z-10 ${stage.status === "completed"
+                                    className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-xl relative z-10 ${stage.status === "completed"
                                         ? "bg-linear-to-br from-[#CFAF63] to-[#FF6A00] text-[#111]"
                                         : stage.status === "active"
                                             ? "bg-[#3B82F6] text-white animate-pulse"
@@ -300,9 +300,9 @@ export default function OrderTrackingPage() {
                                 {idx < trackingData.length - 1 && (
                                     <motion.div
                                         initial={{ height: 0 }}
-                                        animate={{ height: "80px" }}
+                                        animate={{ height: "65px" }}
                                         transition={{ delay: idx * 0.1 + 0.2, duration: 0.6 }}
-                                        className={`w-1 mt-2 ${stage.status === "completed"
+                                        className={`w-0.5 sm:w-1 mt-2 ${stage.status === "completed"
                                             ? "bg-linear-to-b from-[#CFAF63] to-[#FF6A00]"
                                             : "bg-[#333]"
                                             }`}
@@ -312,15 +312,15 @@ export default function OrderTrackingPage() {
 
                             {/* Stage Info */}
                             <motion.div
-                                className="pb-6 flex-1"
+                                className="pb-5 sm:pb-6 flex-1 min-w-0"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: idx * 0.1 + 0.1 }}
                             >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <p className="font-(--font-heading) text-lg text-[#F5F5F5]">{stage.stage}</p>
+                                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                    <p className="font-(--font-heading) text-base sm:text-lg text-[#F5F5F5]">{stage.stage}</p>
                                     <span
-                                        className={`text-xs px-2 py-1 rounded-full font-semibold ${stage.status === "completed"
+                                        className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-semibold ${stage.status === "completed"
                                             ? "bg-[#00D98E]/20 text-[#00D98E]"
                                             : stage.status === "active"
                                                 ? "bg-[#3B82F6]/20 text-[#3B82F6] animate-pulse"
@@ -330,12 +330,12 @@ export default function OrderTrackingPage() {
                                         {stage.status === "pending" ? "Pending" : stage.status === "active" ? "In Progress" : "Completed"}
                                     </span>
                                 </div>
-                                <p className="text-[#999] text-sm mb-2">{stage.details}</p>
+                                <p className="text-[#999] text-xs sm:text-sm mb-1.5 leading-snug">{stage.details}</p>
 
                                 {/* Timestamp */}
                                 {stage.timestamp !== "pending" && (
-                                    <div className="flex items-center gap-2 text-xs text-[#CFAF63]">
-                                        <Clock size={14} />
+                                    <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-[#CFAF63]">
+                                        <Clock size={13} />
                                         {stage.timestamp}
                                     </div>
                                 )}
@@ -351,7 +351,7 @@ export default function OrderTrackingPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="max-w-4xl mx-auto mt-8"
+                    className="max-w-4xl mx-auto mt-6 sm:mt-8"
                 >
                     <OrderTrackingMap
                         orderId={orderId}
@@ -371,58 +371,58 @@ export default function OrderTrackingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="max-w-2xl mx-auto mt-8 glass-card rounded-2xl border border-[#CFAF63]/25 p-6"
+                className="max-w-2xl mx-auto mt-6 sm:mt-8 glass-card rounded-2xl border border-[#CFAF63]/25 p-4 sm:p-6"
             >
-                <h2 className="font-(--font-heading) text-xl text-[#F5F5F5] mb-4">Order Details</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <h2 className="font-(--font-heading) text-lg sm:text-xl text-[#F5F5F5] mb-3 sm:mb-4">Order Details</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {/* Live Order Info */}
                     <div>
-                        <p className="text-xs uppercase tracking-widest text-[#999] mb-2">Order</p>
-                        <p className="text-[#F5F5F5] font-semibold">#{orderId.slice(-6).toUpperCase()}</p>
-                        <p className="text-[#999] text-sm">Status: {currentStatus.replaceAll("_", " ")}</p>
-                        <p className="text-[#999] text-sm">Live updates enabled</p>
+                        <p className="text-[10px] sm:text-xs uppercase tracking-widest text-[#999] mb-1">Order</p>
+                        <p className="text-[#F5F5F5] font-semibold text-sm sm:text-base">#{orderId.slice(-6).toUpperCase()}</p>
+                        <p className="text-[#999] text-xs sm:text-sm">Status: {currentStatus.replaceAll("_", " ")}</p>
+                        <p className="text-[#999] text-xs sm:text-sm">Live updates enabled</p>
                     </div>
 
                     {/* Order Items */}
                     <div>
-                        <p className="text-xs uppercase tracking-widest text-[#999] mb-2">Items</p>
-                        <div className="space-y-1">
-                            <p className="text-[#F5F5F5] text-sm">Items synced from backend order</p>
-                            <p className="text-[#999] text-sm">Open checkout history for full line items</p>
+                        <p className="text-[10px] sm:text-xs uppercase tracking-widest text-[#999] mb-1">Items</p>
+                        <div className="space-y-0.5">
+                            <p className="text-[#F5F5F5] text-xs sm:text-sm">Items synced from backend order</p>
+                            <p className="text-[#999] text-[11px] sm:text-xs">Open checkout history for full line items</p>
                         </div>
                     </div>
 
                     {/* Delivery Type */}
                     <div>
-                        <p className="text-xs uppercase tracking-widest text-[#999] mb-2">Order Type</p>
-                        <span className="inline-block px-3 py-1 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] text-sm font-semibold">
+                        <p className="text-[10px] sm:text-xs uppercase tracking-widest text-[#999] mb-1">Order Type</p>
+                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] text-xs font-semibold">
                             🚚 Live Order
                         </span>
                     </div>
 
                     <div>
-                        <p className="text-xs uppercase tracking-widest text-[#999] mb-2">Delivery Partner</p>
+                        <p className="text-[10px] sm:text-xs uppercase tracking-widest text-[#999] mb-1">Delivery Partner</p>
                         {assignedDelivery ? (
                             <>
-                                <p className="text-[#F5F5F5] text-sm">{assignedDelivery.name}</p>
-                                <p className="text-[#999] text-sm">{assignedDelivery.phone || "Phone unavailable"}</p>
+                                <p className="text-[#F5F5F5] text-xs sm:text-sm font-medium">{assignedDelivery.name}</p>
+                                <p className="text-[#999] text-xs sm:text-sm">{assignedDelivery.phone || "Phone unavailable"}</p>
                             </>
                         ) : (
-                            <p className="text-[#999] text-sm">Not assigned yet</p>
+                            <p className="text-[#999] text-xs sm:text-sm">Not assigned yet</p>
                         )}
                     </div>
 
                     <div>
-                        <p className="text-xs uppercase tracking-widest text-[#999] mb-2">Delivery OTP</p>
-                        <p className="text-[#F5F5F5] text-sm">
+                        <p className="text-[10px] sm:text-xs uppercase tracking-widest text-[#999] mb-1">Delivery OTP</p>
+                        <p className="text-[#F5F5F5] text-xs sm:text-sm">
                             {deliveryOtp ? `Share this code with your delivery partner: ${deliveryOtp}` : "OTP will appear when the order is assigned."}
                         </p>
                     </div>
 
                     {/* Estimated Time */}
                     <div>
-                        <p className="text-xs uppercase tracking-widest text-[#999] mb-2">Estimated Delivery</p>
-                        <p className="text-[#F5F5F5] text-sm">Status-driven live ETA</p>
+                        <p className="text-[10px] sm:text-xs uppercase tracking-widest text-[#999] mb-1">Estimated Delivery</p>
+                        <p className="text-[#F5F5F5] text-xs sm:text-sm">Status-driven live ETA</p>
                     </div>
                 </div>
             </motion.div>
@@ -432,13 +432,13 @@ export default function OrderTrackingPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
-                    className="max-w-2xl mx-auto mt-6 rounded-2xl border border-[#00D98E]/30 bg-[#0F1915] p-6 text-center"
+                    className="max-w-2xl mx-auto mt-6 rounded-2xl border border-[#00D98E]/30 bg-[#0F1915] p-5 sm:p-6 text-center"
                 >
-                    <h3 className="font-(--font-heading) text-3xl text-[#F5F5F5]">See you soon</h3>
-                    <p className="mt-2 text-sm text-[#A6D6C4]">Your order has been delivered successfully.</p>
+                    <h3 className="font-(--font-heading) text-2xl sm:text-3xl text-[#F5F5F5]">See you soon</h3>
+                    <p className="mt-1.5 text-xs sm:text-sm text-[#A6D6C4]">Your order has been delivered successfully.</p>
                     <Link
                         href="/"
-                        className="mt-5 inline-flex rounded-full bg-linear-to-r from-[#CFAF63] to-[#FF6A00] px-6 py-3 font-semibold text-[#111]"
+                        className="mt-4 inline-flex rounded-full bg-linear-to-r from-[#CFAF63] to-[#FF6A00] px-6 py-2.5 text-xs sm:text-sm font-semibold text-[#111] min-h-[44px] items-center"
                     >
                         Home
                     </Link>

@@ -251,40 +251,40 @@ export default function DeliveryDashboard() {
     }, [currentPage, totalPages]);
 
     return (
-        <div className="min-h-screen bg-[#0B0B0B] p-6">
-            <div className="mb-8 flex items-center justify-between">
+        <div className="min-h-screen bg-[#0B0B0B] p-3.5 sm:p-6 pt-16 sm:pt-20 pb-16">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                    <p className="text-sm uppercase tracking-[0.2em] text-[#FF6A00]">Delivery Hub</p>
-                    <h1 className="font-[var(--font-heading)] text-4xl text-[#F5F5F5]">{partnerName}</h1>
-                    <p className="mt-1 text-sm text-[#999]">Take orders, start live tracking, and mark deliveries.</p>
+                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-[#FF6A00]">Delivery Hub</p>
+                    <h1 className="font-[var(--font-heading)] text-2xl sm:text-4xl text-[#F5F5F5] mt-0.5">{partnerName}</h1>
+                    <p className="mt-1 text-xs sm:text-sm text-[#999]">Take orders, start live tracking, and mark deliveries.</p>
                 </motion.div>
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 rounded-full bg-[#FF6A00]/20 px-4 py-2 text-[#FF6A00] hover:bg-[#FF6A00]/30 transition"
+                    className="self-start sm:self-auto flex items-center gap-2 rounded-full bg-[#FF6A00]/20 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-[#FF6A00] hover:bg-[#FF6A00]/30 transition min-h-[38px] cursor-pointer"
                 >
-                    <LogOut size={18} />
+                    <LogOut size={16} />
                     Logout
                 </button>
             </div>
 
-            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="mb-6 grid grid-cols-3 gap-2.5 sm:gap-4">
                 {cards.map((card) => (
                     <button
                         key={card.id}
                         onClick={() => setTab(card.id)}
-                        className={`rounded-2xl border p-4 text-left transition ${tab === card.id
+                        className={`rounded-xl sm:rounded-2xl border p-2.5 sm:p-4 text-left transition cursor-pointer min-h-[64px] ${tab === card.id
                             ? "border-[#CFAF63] bg-[#CFAF63]/10"
                             : "border-[#333] bg-[#111] hover:border-[#CFAF63]/40"
                             }`}
                     >
-                        <p className="text-xs uppercase tracking-[0.12em] text-[#999]">{card.label}</p>
-                        <p className="mt-2 text-3xl font-bold text-[#F5F5F5]">{card.count}</p>
+                        <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[#999] font-medium">{card.label}</p>
+                        <p className="mt-1 sm:mt-2 text-xl sm:text-3xl font-bold text-[#F5F5F5]">{card.count}</p>
                     </button>
                 ))}
             </div>
 
-            {error ? <p className="mb-4 text-sm text-rose-300">{error}</p> : null}
-            {loading ? <p className="text-[#F5F5F5]/70">Loading delivery orders...</p> : null}
+            {error ? <p className="mb-4 text-xs sm:text-sm text-rose-300">{error}</p> : null}
+            {loading ? <p className="text-xs sm:text-sm text-[#F5F5F5]/70">Loading delivery orders...</p> : null}
 
             <div className="mb-4">
                 <input
@@ -292,55 +292,55 @@ export default function DeliveryDashboard() {
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Search by customer, order id, item, or address"
-                    className="w-full rounded-2xl border border-[#CFAF63]/25 bg-[#111] px-4 py-3 text-sm text-[#F5F5F5] placeholder-[#777] outline-none"
+                    className="w-full rounded-xl sm:rounded-2xl border border-[#CFAF63]/25 bg-[#111] px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-[#F5F5F5] placeholder-[#777] outline-none focus:border-[#FF6A00]"
                 />
             </div>
 
             {!loading && filteredList.length === 0 ? (
-                <div className="glass-card rounded-2xl border border-[#333] p-8 text-center text-[#999]">No orders in this section.</div>
+                <div className="glass-card rounded-2xl border border-[#333] p-6 sm:p-8 text-center text-xs sm:text-sm text-[#999]">No orders in this section.</div>
             ) : null}
 
             {!loading && filteredList.length > 0 ? (
-                <p className="mb-3 text-xs text-[#999]">
+                <p className="mb-3 text-[11px] sm:text-xs text-[#999]">
                     Showing {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, filteredList.length)} of {filteredList.length}
                 </p>
             ) : null}
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
                 {!loading &&
                     paginatedList.map((order) => {
                         const coords = extractCoordsFromAddress(order.address);
                         const displayAddress = getDisplayAddress(order.address);
 
                         return (
-                            <div key={order._id} className="glass-card rounded-2xl border border-[#CFAF63]/25 p-5">
-                                <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div key={order._id} className="glass-card rounded-2xl border border-[#CFAF63]/25 p-4 sm:p-5">
+                                <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.1em] text-[#999]">Customer</p>
-                                        <p className="text-[#F5F5F5]">{order.userId?.name || order.userId?.email || "Customer"}</p>
+                                        <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#999]">Customer</p>
+                                        <p className="text-[#F5F5F5] text-xs sm:text-sm font-semibold">{order.userId?.name || order.userId?.email || "Customer"}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.1em] text-[#999]">Order</p>
-                                        <p className="text-[#CFAF63]">#{order._id.slice(-6).toUpperCase()}</p>
+                                        <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#999]">Order</p>
+                                        <p className="text-[#CFAF63] font-mono text-xs sm:text-sm">#{order._id.slice(-6).toUpperCase()}</p>
                                     </div>
                                 </div>
 
-                                <div className="mb-4">
-                                    <p className="text-xs uppercase tracking-[0.1em] text-[#999]">Items</p>
-                                    <p className="text-sm text-[#CCC]">
+                                <div className="mb-3">
+                                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#999]">Items</p>
+                                    <p className="text-xs sm:text-sm text-[#CCC]">
                                         {order.items.map((item) => `${item.menuItemId?.name || "Item"} x${item.quantity}`).join(", ")}
                                     </p>
                                 </div>
 
-                                <div className="mb-5">
-                                    <p className="text-xs uppercase tracking-[0.1em] text-[#999]">Delivery Address</p>
-                                    <p className="text-sm text-[#F5F5F5]">{displayAddress || order.address}</p>
+                                <div className="mb-4">
+                                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#999]">Delivery Address</p>
+                                    <p className="text-xs sm:text-sm text-[#F5F5F5] leading-snug">{displayAddress || order.address}</p>
                                     {coords ? (
                                         <a
                                             href={`https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="mt-2 inline-block text-xs text-[#CFAF63] hover:text-[#FF6A00]"
+                                            className="mt-1.5 inline-block text-xs text-[#CFAF63] hover:text-[#FF6A00]"
                                         >
                                             Open in Maps ({coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)})
                                         </a>
@@ -350,32 +350,32 @@ export default function DeliveryDashboard() {
                                 {tab === "available" ? (
                                     <button
                                         onClick={() => takeOrder(order._id)}
-                                        className="w-full rounded-lg bg-gradient-to-r from-[#CFAF63] to-[#FF6A00] px-4 py-2 font-semibold text-[#111] hover:shadow-lg"
+                                        className="w-full rounded-xl bg-gradient-to-r from-[#CFAF63] to-[#FF6A00] px-4 py-2.5 text-xs sm:text-sm font-semibold text-[#111] hover:shadow-lg min-h-[40px] cursor-pointer"
                                     >
-                                        <PackageCheck size={16} className="mr-2 inline" />
+                                        <PackageCheck size={15} className="mr-1.5 inline" />
                                         Take This Order
                                     </button>
                                 ) : null}
 
                                 {tab === "assigned" ? (
-                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                         <button
                                             onClick={() => updateStatus(order._id, "out_for_delivery")}
-                                            className="rounded-lg bg-[#3B82F6]/20 px-4 py-2 font-semibold text-[#6CA3EA] hover:bg-[#3B82F6]/30"
+                                            className="rounded-xl bg-[#3B82F6]/20 px-3 py-2 text-xs sm:text-sm font-semibold text-[#6CA3EA] hover:bg-[#3B82F6]/30 min-h-[38px] cursor-pointer"
                                         >
-                                            <Truck size={16} className="mr-1 inline" />
+                                            <Truck size={15} className="mr-1 inline" />
                                             Out for Delivery
                                         </button>
                                         <button
                                             onClick={() => router.push(`/delivery/tracking/${order._id}`)}
-                                            className="rounded-lg border border-[#CFAF63]/40 px-4 py-2 font-semibold text-[#CFAF63] hover:bg-[#CFAF63]/10"
+                                            className="rounded-xl border border-[#CFAF63]/40 px-3 py-2 text-xs sm:text-sm font-semibold text-[#CFAF63] hover:bg-[#CFAF63]/10 min-h-[38px] cursor-pointer"
                                         >
-                                            <Navigation size={16} className="mr-1 inline" />
+                                            <Navigation size={15} className="mr-1 inline" />
                                             Live Tracking
                                         </button>
                                         <button
                                             onClick={() => openDeliveredDialog(order)}
-                                            className="rounded-lg bg-[#00D98E]/20 px-4 py-2 font-semibold text-[#00D98E] hover:bg-[#00D98E]/30"
+                                            className="rounded-xl bg-[#00D98E]/20 px-3 py-2 text-xs sm:text-sm font-semibold text-[#00D98E] hover:bg-[#00D98E]/30 min-h-[38px] cursor-pointer"
                                         >
                                             Mark Delivered
                                         </button>
@@ -391,7 +391,7 @@ export default function DeliveryDashboard() {
                     <button
                         onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                         disabled={currentPage === 1}
-                        className="rounded-full border border-[#CFAF63]/30 px-4 py-2 text-xs text-[#F5F5F5] disabled:opacity-40"
+                        className="rounded-full border border-[#CFAF63]/30 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs text-[#F5F5F5] disabled:opacity-40 min-h-[36px]"
                     >
                         Prev
                     </button>

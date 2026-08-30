@@ -201,17 +201,17 @@ export default function MyOrdersDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0B0B0B] p-6 md:p-10">
+        <div className="min-h-screen bg-[#0B0B0B] p-4 sm:p-6 md:p-10 pt-20 sm:pt-28">
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
+                className="mb-6 sm:mb-8"
             >
-                <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Customer Dashboard</p>
-                <h1 className="font-[var(--font-heading)] text-5xl text-[#F5F5F5] mt-2">My Orders & Bookings</h1>
+                <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Customer Dashboard</p>
+                <h1 className="font-[var(--font-heading)] text-3xl sm:text-5xl text-[#F5F5F5] mt-1.5">My Orders & Bookings</h1>
                 {user && (
-                    <p className="text-[#999] mt-4">Welcome back, <span className="text-[#CFAF63]">{user.name || user.email}</span>!</p>
+                    <p className="text-xs sm:text-sm text-[#999] mt-2 sm:mt-4">Welcome back, <span className="text-[#CFAF63] font-semibold">{user.name || user.email}</span>!</p>
                 )}
             </motion.div>
 
@@ -219,7 +219,7 @@ export default function MyOrdersDashboard() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8 flex gap-4 border-b border-[#333]"
+                className="mb-6 sm:mb-8 flex gap-2 sm:gap-4 border-b border-[#333] overflow-x-auto whitespace-nowrap scrollbar-none pb-1"
             >
                 {[
                     { id: "orders" as const, icon: ShoppingBag, label: "My Orders" },
@@ -232,25 +232,25 @@ export default function MyOrdersDashboard() {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition ${isActive
+                            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3 border-b-2 transition flex-shrink-0 cursor-pointer min-h-[44px] ${isActive
                                 ? "border-[#FF6A00] text-[#FF6A00]"
                                 : "border-transparent text-[#999] hover:text-[#CFAF63]"
                                 }`}
                         >
-                            <Icon size={20} />
-                            <span className="text-sm font-semibold">{tab.label}</span>
+                            <Icon size={18} className="shrink-0" />
+                            <span className="text-xs sm:text-sm font-semibold">{tab.label}</span>
                             {tab.id === "orders" && orders.length > 0 && (
-                                <span className="ml-1 px-2 py-0.5 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] text-xs font-bold">
+                                <span className="ml-1 px-2 py-0.5 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] text-[10px] sm:text-xs font-bold">
                                     {orders.length}
                                 </span>
                             )}
                             {tab.id === "reservations" && reservations.length > 0 && (
-                                <span className="ml-1 px-2 py-0.5 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] text-xs font-bold">
+                                <span className="ml-1 px-2 py-0.5 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] text-[10px] sm:text-xs font-bold">
                                     {reservations.length}
                                 </span>
                             )}
                             {tab.id === "screenings" && screenings.length > 0 && (
-                                <span className="ml-1 px-2 py-0.5 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] text-xs font-bold">
+                                <span className="ml-1 px-2 py-0.5 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] text-[10px] sm:text-xs font-bold">
                                     {screenings.length}
                                 </span>
                             )}
@@ -271,9 +271,9 @@ export default function MyOrdersDashboard() {
                 {activeTab === "orders" && (
                     <div className="space-y-4">
                         {orders.length === 0 ? (
-                            <div className="glass-card rounded-2xl border border-[#CFAF63]/25 p-8 text-center">
-                                <ShoppingBag size={48} className="mx-auto text-[#666] mb-4" />
-                                <p className="text-[#999]">No orders yet. Start ordering now!</p>
+                            <div className="glass-card rounded-2xl border border-[#CFAF63]/25 p-6 sm:p-8 text-center">
+                                <ShoppingBag size={40} className="mx-auto text-[#666] mb-3" />
+                                <p className="text-xs sm:text-sm text-[#999]">No orders yet. Start ordering now!</p>
                             </div>
                         ) : (
                             orders.map((order, idx) => (
@@ -282,62 +282,62 @@ export default function MyOrdersDashboard() {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: idx * 0.1 }}
-                                    className="glass-card rounded-2xl border border-[#CFAF63]/25 p-6 hover:border-[#CFAF63]/50 transition"
+                                    className="glass-card rounded-2xl border border-[#CFAF63]/25 p-4 sm:p-6 hover:border-[#CFAF63]/50 transition"
                                 >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                         {/* Left: Order Info */}
                                         <div>
-                                            <div className="flex items-start justify-between mb-4">
+                                            <div className="flex flex-wrap items-start justify-between gap-2 mb-3 sm:mb-4">
                                                 <div>
-                                                    <p className="text-xs uppercase tracking-[0.1em] text-[#CFAF63] mb-1">Order #{order.orderNumber.slice(-6)}</p>
-                                                    <p className="text-lg font-semibold text-[#F5F5F5]">{order.items.join(", ")}</p>
+                                                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#CFAF63] mb-0.5">Order #{order.orderNumber.slice(-6)}</p>
+                                                    <p className="text-base sm:text-lg font-semibold text-[#F5F5F5]">{order.items.join(", ")}</p>
                                                 </div>
-                                                <span className={`flex items-center gap-1 text-xs px-3 py-1 rounded-full font-semibold ${getOrderStatusColor(order.status)}`}>
+                                                <span className={`flex items-center gap-1 text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full font-semibold ${getOrderStatusColor(order.status)}`}>
                                                     {getOrderStatusIcon(order.status)}
                                                     {order.status.replace(/_/g, " ")}
                                                 </span>
                                             </div>
-                                            <p className="text-[#999] text-sm mb-2">Order Type: <span className="text-[#CFAF63]">{order.orderType === "delivery" ? "🚚 Delivery" : order.orderType === "takeaway" ? "🛍️ Takeaway" : "🍽️ Dine-in"}</span></p>
-                                            <p className="text-[#999] text-sm">Placed: {new Date(order.createdAt).toLocaleDateString()}</p>
+                                            <p className="text-[#999] text-xs sm:text-sm mb-1.5">Order Type: <span className="text-[#CFAF63] font-medium">{order.orderType === "delivery" ? "🚚 Delivery" : order.orderType === "takeaway" ? "🛍️ Takeaway" : "🍽️ Dine-in"}</span></p>
+                                            <p className="text-[#999] text-xs sm:text-sm">Placed: {new Date(order.createdAt).toLocaleDateString()}</p>
                                         </div>
 
                                         {/* Right: Delivery/Details */}
                                         <div>
-                                            <div className="flex items-start justify-between h-full">
+                                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 h-full">
                                                 <div>
                                                     {order.deliveryAddress && (
                                                         <>
-                                                            <p className="text-xs uppercase tracking-[0.1em] text-[#999] mb-2">Delivery Address</p>
-                                                            <div className="flex items-start gap-2 mb-4">
-                                                                <MapPin size={16} className="text-[#FF6A00] mt-0.5 flex-shrink-0" />
-                                                                <p className="text-[#F5F5F5] text-sm">{order.deliveryAddress}</p>
+                                                            <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#999] mb-1">Delivery Address</p>
+                                                            <div className="flex items-start gap-1.5 mb-2 sm:mb-4">
+                                                                <MapPin size={15} className="text-[#FF6A00] mt-0.5 flex-shrink-0" />
+                                                                <p className="text-[#F5F5F5] text-xs sm:text-sm leading-snug">{order.deliveryAddress}</p>
                                                             </div>
                                                         </>
                                                     )}
                                                     {order.tableNumber && (
                                                         <>
-                                                            <p className="text-xs uppercase tracking-[0.1em] text-[#999] mb-2">Table Number</p>
-                                                            <p className="text-[#CFAF63] font-semibold text-lg">Table {order.tableNumber}</p>
+                                                            <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#999] mb-1">Table Number</p>
+                                                            <p className="text-[#CFAF63] font-semibold text-base sm:text-lg">Table {order.tableNumber}</p>
                                                         </>
                                                     )}
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-xs uppercase tracking-[0.1em] text-[#999] mb-1">Total</p>
-                                                    <p className="text-2xl font-bold text-[#CFAF63]">₹{order.total}</p>
+                                                <div className="sm:text-right border-t sm:border-t-0 border-[#333] pt-2 sm:pt-0 flex sm:flex-col justify-between items-center sm:items-end">
+                                                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#999] mb-0.5">Total</p>
+                                                    <p className="text-xl sm:text-2xl font-bold text-[#CFAF63]">₹{order.total}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     {order.estimatedTime && (
-                                        <div className="mt-4 pt-4 border-t border-[#333]">
-                                            <div className="flex items-center justify-between gap-3 text-[#999] text-sm">
+                                        <div className="mt-4 pt-3 sm:pt-4 border-t border-[#333]">
+                                            <div className="flex flex-wrap items-center justify-between gap-2 text-[#999] text-xs sm:text-sm">
                                                 <div className="flex items-center gap-2">
-                                                    <Clock size={14} />
-                                                    <span>Estimated time: {order.estimatedTime}</span>
+                                                    <Clock size={14} className="shrink-0" />
+                                                    <span>Estimated: {order.estimatedTime}</span>
                                                 </div>
                                                 <Link
                                                     href={`/order-tracking?orderId=${order.id}`}
-                                                    className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-xs text-[#CFAF63] hover:border-[#FF6A00] hover:text-[#FF6A00]"
+                                                    className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-xs text-[#CFAF63] hover:border-[#FF6A00] hover:text-[#FF6A00] min-h-[32px] inline-flex items-center"
                                                 >
                                                     Track Live
                                                 </Link>

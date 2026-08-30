@@ -225,14 +225,14 @@ export function MenuClient() {
 
     return (
         <>
-            <div className="mx-auto max-w-7xl px-4 md:px-10">
-                <SectionReveal className="mb-6 section-glow">
-                    <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Food Menu • Khammam</p>
-                    <h1 className="mt-2 font-(--font-heading) text-4xl leading-tight text-[#F5F5F5] sm:text-5xl md:text-6xl">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-10">
+                <SectionReveal className="mb-4 sm:mb-6 section-glow">
+                    <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Food Menu • Khammam</p>
+                    <h1 className="mt-1.5 font-(--font-heading) text-3xl leading-tight text-[#F5F5F5] sm:text-5xl md:text-6xl">
                         Chef Curated Selections in Khammam
                     </h1>
                     <GoldDivider className="max-w-md" />
-                    <p className="mt-4 text-[#F5F5F5]/70 max-w-2xl leading-relaxed text-sm md:text-base">
+                    <p className="mt-3 text-[#F5F5F5]/70 max-w-2xl leading-relaxed text-xs sm:text-sm md:text-base">
                         Explore biryani, starters, curries, mocktails, and family dining options in Khammam at CafeMaza.
                         Located at 66RG+852, V.Venkatayapalem, each dish is handcrafted with premium spices and served fresh.
                     </p>
@@ -240,28 +240,28 @@ export function MenuClient() {
             </div>
 
             {/* STICKY SEARCH & CATEGORY BAR */}
-            <div className="sticky top-0 z-50 w-full bg-black/90 backdrop-blur-xl border-b border-orange-500/20 shadow-lg">
-                <div className="px-3 py-3 max-w-7xl mx-auto">
+            <div className="sticky top-[60px] sm:top-[68px] z-40 w-full bg-[#0B0B0B]/95 backdrop-blur-xl border-b border-[#CFAF63]/20 shadow-lg">
+                <div className="px-4 py-2.5 sm:py-3 max-w-7xl mx-auto space-y-2">
                     {/* Search Input */}
                     <div className="relative">
-                        <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                        <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                         <input
                             value={searchQuery}
                             onChange={(event) => setSearchQuery(event.target.value)}
-                            placeholder="Search dishes (e.g. Biryani, Tikka, Manchurian)..."
-                            className="w-full h-11 rounded-xl bg-zinc-900 border border-zinc-700 pl-10 pr-4 text-sm text-white focus:border-orange-500 outline-none transition-all"
+                            placeholder="Search dishes (e.g. Biryani, Tikka)..."
+                            className="w-full h-10 sm:h-11 rounded-xl bg-zinc-900/90 border border-[#CFAF63]/30 pl-9 sm:pl-10 pr-4 text-xs sm:text-sm text-white focus:border-[#FF6A00] outline-none transition-all"
                         />
                     </div>
 
                     {/* Horizontal Category Pills */}
-                    <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide pt-3 pb-1">
+                    <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none pt-1 pb-1">
                         {categories.map((category) => (
                             <button
                                 key={category.id}
                                 onClick={() => scrollToCategory(category.id)}
-                                className={`px-4 py-2 rounded-full text-sm flex-shrink-0 border transition-all active:scale-95 ${active === category.id
-                                    ? "bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/20"
-                                    : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                                className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium flex-shrink-0 border transition-all active:scale-95 cursor-pointer ${active === category.id
+                                    ? "bg-gradient-to-r from-[#FF6A00] to-[#CFAF63] border-transparent text-white font-bold shadow-md shadow-orange-500/20"
+                                    : "bg-zinc-900/80 border-zinc-700/80 text-zinc-300 hover:border-[#CFAF63]/50"
                                     }`}
                             >
                                 {category.label}
@@ -271,17 +271,17 @@ export function MenuClient() {
                 </div>
             </div>
 
-            <div className="mx-auto max-w-7xl px-4 pb-24 md:px-10">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-20 md:px-10">
                 <div className="pt-4 md:pt-6" aria-hidden="true" />
 
                 {loadingGrid ? (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {Array.from({ length: 8 }).map((_, idx) => (
                             <MenuCardSkeleton key={idx} />
                         ))}
                     </div>
                 ) : filteredCategories.length ? (
-                    <div className="space-y-12 md:space-y-16">
+                    <div className="space-y-10 sm:space-y-14">
                         {filteredCategories.map((category) => (
                             <section
                                 key={category.id}
@@ -289,19 +289,19 @@ export function MenuClient() {
                                 ref={(element) => {
                                     sectionRefs.current[category.id] = element;
                                 }}
-                                className="scroll-mt-52 md:scroll-mt-40"
+                                className="scroll-mt-48 sm:scroll-mt-40"
                             >
-                                <div className="mb-6 flex items-center justify-between border-b border-[#D4AF37]/25 pb-4 md:mb-8">
-                                    <h2 className="font-(--font-heading) text-3xl text-[#F5F5F5] md:text-5xl">{category.label}</h2>
-                                    <span className="text-sm font-medium text-[#CFAF63]/80 tracking-[0.1em]">{category.items.length} Items</span>
+                                <div className="mb-4 sm:mb-6 flex items-center justify-between border-b border-[#D4AF37]/25 pb-3">
+                                    <h2 className="font-(--font-heading) text-2xl sm:text-3xl md:text-4xl text-[#F5F5F5]">{category.label}</h2>
+                                    <span className="text-xs sm:text-sm font-medium text-[#CFAF63]/80 tracking-[0.1em]">{category.items.length} Items</span>
                                 </div>
 
-                                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                     {category.items.map((dish, index) => {
                                         const prioritizeImage = !searchQuery.trim() && filteredCategories[0]?.id === category.id && index < 4;
 
                                         return (
-                                            <div key={`${category.id}-${dish.name}`}>
+                                            <div key={dish._id ? `${dish._id}-${index}` : `${category.id}-${dish.name}-${index}`}>
                                                 <DishCard dish={dish} onAdd={addToCart} priority={prioritizeImage} />
                                             </div>
                                         );
@@ -311,7 +311,7 @@ export function MenuClient() {
                         ))}
                     </div>
                 ) : (
-                    <div className="rounded-2xl border border-[#D4AF37]/20 bg-[#111111]/75 p-7 text-center text-[#F5F5F5]/72">
+                    <div className="rounded-2xl border border-[#D4AF37]/20 bg-[#111111]/75 p-6 sm:p-7 text-center text-xs sm:text-sm text-[#F5F5F5]/72">
                         No dishes found for "{searchQuery}".
                     </div>
                 )}
