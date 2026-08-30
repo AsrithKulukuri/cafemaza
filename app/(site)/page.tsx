@@ -70,16 +70,16 @@ export default function HomePage() {
 
         async function loadSignatureDishes() {
             try {
-                const items = await apiFetch<BackendMenuItem[]>("/api/menu", { cache: "force-cache" });
+                const items = await apiFetch<BackendMenuItem[]>("/api/menu", { cache: "no-store" });
                 if (!items.length || !mounted) return;
 
-                const featuredPool = items.some((item) => item.isPopular)
-                    ? items.filter((item) => Boolean(item.isPopular))
-                    : items.filter((item) => Boolean(item.isBestSeller));
+                const popularItems = items.filter((item) => Boolean(item.isPopular || item.isBestSeller));
+                const featuredPool = popularItems.length > 0 ? popularItems : items;
 
                 const featured = featuredPool
                     .slice(0, 6)
                     .map((item) => ({
+                        _id: item._id,
                         name: item.name,
                         price: item.price,
                         image: item.image || "/images/soup.jpg",

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { Utensils, ShoppingBag, CreditCard, Banknote } from "lucide-react";
 import type { Dish } from "@/data/mockData";
 import { apiFetch } from "@/lib/api";
 import { getAuthToken, getAuthUser } from "@/lib/authToken";
@@ -161,18 +162,6 @@ type RazorpayConstructor = new (options: {
     handler: (response: RazorpayPaymentResult) => void;
 }) => RazorpayInstance;
 
-type ProfileResponse = {
-    user: {
-        name?: string;
-        phone?: string;
-        savedAddress?: string;
-        savedLocation?: {
-            latitude: number;
-            longitude: number;
-        } | null;
-    };
-};
-
 async function reverseGeocode(latitude: number, longitude: number): Promise<string> {
     const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`,
@@ -303,6 +292,31 @@ function openRazorpayCheckout({
     });
 }
 
+type MembershipDetails = {
+    cardCode: string;
+    cardType: "gold" | "platinum" | "diamond" | "master";
+    status: string;
+    discountPercent: number;
+    pointsBalance: number;
+    yearlyDiscountLimit?: number;
+    yearlyDiscountUsed?: number;
+    remainingCredit?: number;
+    assignedAt?: string | Date;
+    validUntil?: string | Date;
+    currentYear?: number;
+};
+
+type ProfileResponse = {
+    user: {
+        name?: string;
+        email?: string;
+        phone?: string;
+        savedAddress?: string;
+        savedLocation?: { latitude: number; longitude: number } | null;
+    };
+    membership?: MembershipDetails | null;
+};
+
 export default function CheckoutPage() {
     const router = useRouter();
     const hasTriedAutoAddressRef = useRef(false);
@@ -325,6 +339,12 @@ export default function CheckoutPage() {
     const [showAvailableCoupons, setShowAvailableCoupons] = useState(false);
     const [loadingAvailableCoupons, setLoadingAvailableCoupons] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState<AvailableCouponItem[]>([]);
+    const [membership, setMembership] = useState<MembershipDetails | null>(null);
+    const [masterDiscountMode, setMasterDiscountMode] = useState<"credit_500" | "percent_15">("credit_500");
+    const [selectedOfferType, setSelectedOfferType] = useState<"membership" | "coupon">("membership");
+    const [orderType, setOrderType] = useState<"dine_in" | "takeaway">("dine_in");
+    const [dineInPaymentMode, setDineInPaymentMode] = useState<"pay_now" | "pay_counter">("pay_now");
+    const [tableNumber, setTableNumber] = useState("");
     const [form, setForm] = useState({
         name: "",
         phone: "",
@@ -382,6 +402,11 @@ export default function CheckoutPage() {
                     return;
                 }
 
+                if (result.membership) {
+                    setMembership(result.membership);
+                    setSelectedOfferType("membership");
+                }
+
                 const profile = result.user || {};
                 const profileSavedAddress = String(profile.savedAddress || "").trim();
                 const profileSavedLocation =
@@ -423,10 +448,51 @@ export default function CheckoutPage() {
 
     const subtotal = useMemo(() => cart.reduce((sum, item) => sum + ((item.selectedVariant?.price ?? item.price ?? 0) * item.qty), 0), [cart]);
     const minimumOrderMet = subtotal >= MINIMUM_ORDER;
-    const discountAmount = minimumOrderMet ? Math.min(appliedCoupon?.discount || 0, subtotal) : 0;
-    const deliveryCharge = minimumOrderMet ? (appliedCoupon?.delivery ?? DELIVERY_CHARGE) : 0;
-    const gstAmount = minimumOrderMet ? (subtotal - discountAmount) * GST_RATE : 0;
-    const total = subtotal - discountAmount + deliveryCharge + gstAmount;
+
+    const isMasterCreditAvailable = useMemo(() => {
+        if (!membership || membership.cardType !== "master") return false;
+        const remaining = membership.remainingCredit ?? Math.max(0, (membership.yearlyDiscountLimit || 3000) - (membership.yearlyDiscountUsed || 0));
+        const isValid = !membership.validUntil || new Date() <= new Date(membership.validUntil);
+        return remaining > 0 && isValid;
+    }, [membership]);
+
+    const remainingMasterCredit = useMemo(() => {
+        if (!membership) return 0;
+        return membership.remainingCredit ?? Math.max(0, (membership.yearlyDiscountLimit || 3000) - (membership.yearlyDiscountUsed || 0));
+    }, [membership]);
+
+    // Membership discount calculation
+    const membershipDiscountAmount = useMemo(() => {
+        if (!membership || !minimumOrderMet) return 0;
+        const pct = membership.discountPercent || 15;
+        if (pct <= 0) return 0;
+
+        if (membership.cardType === "master") {
+            const minBill = 1000;
+            if (subtotal < minBill) return 0;
+
+            if (masterDiscountMode === "credit_500" && isMasterCreditAvailable) {
+                // Option A: ₹500 Free Credit from ₹3,000 pool
+                return Math.min(500, remainingMasterCredit, subtotal);
+            } else {
+                // Option B: Standard 15% discount
+                return Math.round((subtotal * pct) / 100);
+            }
+        }
+
+        return Math.round((subtotal * pct) / 100);
+    }, [membership, subtotal, minimumOrderMet, masterDiscountMode, isMasterCreditAvailable, remainingMasterCredit]);
+
+    const isMembershipBenefitActive = Boolean(membership && membership.status === "active" && selectedOfferType === "membership");
+    const isCouponActive = Boolean(appliedCoupon && selectedOfferType === "coupon");
+    const effectiveMembershipDiscount = isMembershipBenefitActive ? membershipDiscountAmount : 0;
+    const effectiveCouponDiscount = isCouponActive ? (appliedCoupon?.discount || 0) : 0;
+    const discountAmount = Math.min(subtotal, Math.max(effectiveMembershipDiscount, effectiveCouponDiscount));
+    const deliveryCharge = minimumOrderMet && orderType === "takeaway"
+        ? (isCouponActive && appliedCoupon?.type === "free_delivery" ? 0 : DELIVERY_CHARGE)
+        : 0;
+    const gstAmount = minimumOrderMet ? Math.max(0, (subtotal - discountAmount) * GST_RATE) : 0;
+    const total = Math.max(0, subtotal - discountAmount + deliveryCharge + gstAmount);
     const minimumShortfall = Math.max(0, MINIMUM_ORDER - subtotal);
 
     useEffect(() => {
@@ -620,6 +686,7 @@ export default function CheckoutPage() {
             });
 
             setAppliedCoupon(response);
+            setSelectedOfferType("coupon");
             setCouponInput(response.code);
             setCouponMessage(response.message || `Coupon Applied! You saved ₹${formatCurrency(response.discount)}`);
         } catch (requestError) {
@@ -683,8 +750,13 @@ export default function CheckoutPage() {
     }, []);
 
     const placeOrder = async () => {
-        if (!form.name || !form.phone || !form.address || !cart.length) {
-            setError("Please fill name, phone, address, and add at least one item.");
+        if (!form.name || !form.phone || !cart.length) {
+            setError("Please fill name, phone, and add at least one item.");
+            return;
+        }
+
+        if (orderType === "takeaway" && !form.address) {
+            setError("Please fill your delivery address.");
             return;
         }
 
@@ -710,13 +782,18 @@ export default function CheckoutPage() {
             }
 
             const items = await resolveBackendItems();
+            const isPayAtCounter = orderType === "dine_in" && dineInPaymentMode === "pay_counter";
+            const effectivePaymentMethod = isPayAtCounter ? "Cash" : form.payment;
 
             const payload = {
                 items,
-                address: `${form.address}${selectedPoint ? ` | coords:${selectedPoint.latitude.toFixed(6)},${selectedPoint.longitude.toFixed(6)}` : ""}${form.instructions ? ` | ${form.instructions}` : ""}`,
+                orderType,
+                tableNumber: orderType === "dine_in" ? tableNumber : undefined,
+                address: orderType === "dine_in" ? `Dine-In Table ${tableNumber}` : `${form.address}${selectedPoint ? ` | coords:${selectedPoint.latitude.toFixed(6)},${selectedPoint.longitude.toFixed(6)}` : ""}${form.instructions ? ` | ${form.instructions}` : ""}`,
                 customerPhone: form.phone,
-                paymentMethod: form.payment,
-                couponCode: appliedCoupon?.code || undefined,
+                paymentMethod: effectivePaymentMethod,
+                couponCode: selectedOfferType === "coupon" && appliedCoupon ? appliedCoupon.code : undefined,
+                masterDiscountChoice: masterDiscountMode,
             };
 
             const customerName = form.name || supabaseUser?.user_metadata?.name || "Customer";
@@ -724,7 +801,7 @@ export default function CheckoutPage() {
 
             let createdOrderId = "";
 
-            if (form.payment === "Cash") {
+            if (effectivePaymentMethod === "Cash") {
                 const created = token
                     ? await apiFetch<CreatedOrder>("/api/orders", {
                         method: "POST",
@@ -832,10 +909,18 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 pb-20 md:grid-cols-[1.1fr_0.9fr] md:px-10">
-            <section className="glass-card rounded-3xl border border-[#CFAF63]/20 p-7">
+        <div className="mx-auto grid max-w-6xl gap-6 lg:gap-8 px-3 sm:px-6 pb-20 md:grid-cols-[1.1fr_0.9fr] md:px-10">
+            <section className="glass-card rounded-3xl border border-[#CFAF63]/20 p-4 sm:p-7">
                 <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Checkout</p>
-                <h1 className="mt-2 font-(--font-heading) text-4xl text-[#F5F5F5]">Complete Your Order</h1>
+                <h1 className="mt-1.5 font-(--font-heading) text-2xl sm:text-4xl text-[#F5F5F5]">Complete Your Order</h1>
+
+                <div className="mt-6">
+                    <label className="block text-xs uppercase tracking-wider text-[#CFAF63] font-bold mb-2.5">Dining Preference</label>
+                    <div className="grid grid-cols-2 gap-3">
+                        <button type="button" onClick={() => setOrderType("dine_in")} className={`flex items-center justify-center gap-2 rounded-2xl border p-3.5 text-sm font-bold transition cursor-pointer ${orderType === "dine_in" ? "border-[#CFAF63] bg-[#CFAF63]/15 text-[#CFAF63] shadow-lg ring-1 ring-[#CFAF63]" : "border-zinc-800 bg-[#121212] text-zinc-400 hover:border-zinc-700 hover:text-white"}`}>🍽️ Dine In</button>
+                        <button type="button" onClick={() => setOrderType("takeaway")} className={`flex items-center justify-center gap-2 rounded-2xl border p-3.5 text-sm font-bold transition cursor-pointer ${orderType === "takeaway" ? "border-[#FF6A00] bg-[#FF6A00]/15 text-[#FF6A00] shadow-lg ring-1 ring-[#FF6A00]" : "border-zinc-800 bg-[#121212] text-zinc-400 hover:border-zinc-700 hover:text-white"}`}>🛍️ Take Away</button>
+                    </div>
+                </div>
 
                 <div className="mt-6 space-y-4">
                     <label className="block text-sm text-[#F5F5F5]/75">
@@ -854,186 +939,430 @@ export default function CheckoutPage() {
                             className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
                         />
                     </label>
-                    <label className="block text-sm text-[#F5F5F5]/75">
-                        Address
-                        <div className="mt-2 flex flex-wrap items-center gap-3">
-                            <button
-                                type="button"
-                                onClick={useCurrentAddress}
-                                disabled={locatingAddress}
-                                className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-xs text-[#CFAF63] hover:border-[#FF6A00] hover:text-[#FF6A00] disabled:opacity-60"
-                            >
-                                {locatingAddress ? "Detecting..." : "Use Current Address"}
-                            </button>
-                            {savedAddressOption.trim() ? (
-                                <button
-                                    type="button"
-                                    onClick={useSavedAddress}
-                                    className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-xs text-[#CFAF63] hover:border-[#FF6A00] hover:text-[#FF6A00]"
-                                >
-                                    Use Saved Address
-                                </button>
+
+                    {orderType === "dine_in" && (
+                        <div className="space-y-4 rounded-2xl border border-purple-500/30 bg-purple-950/20 p-4">
+                            <label className="block text-sm text-[#F5F5F5]/75">
+                                Table Number
+                                <input value={tableNumber} onChange={(e) => setTableNumber(e.target.value)} className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3" placeholder="e.g. Table 5" />
+                            </label>
+                            <label className="block text-sm text-[#F5F5F5]/75">
+                                Payment Mode
+                                <select value={dineInPaymentMode} onChange={(e) => setDineInPaymentMode(e.target.value as any)} className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3">
+                                    <option value="pay_now">Pay Now (Online)</option>
+                                    <option value="pay_counter">Pay at Counter</option>
+                                </select>
+                            </label>
+                        </div>
+                    )}
+
+                    {orderType === "takeaway" && (
+                        <>
+                            <label className="block text-sm text-[#F5F5F5]/75">
+                                Address
+                                <div className="mt-2 flex flex-wrap items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={useCurrentAddress}
+                                        disabled={locatingAddress}
+                                        className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-xs text-[#CFAF63] hover:border-[#FF6A00] hover:text-[#FF6A00] disabled:opacity-60"
+                                    >
+                                        {locatingAddress ? "Detecting..." : "Use Current Address"}
+                                    </button>
+                                    {savedAddressOption.trim() ? (
+                                        <button
+                                            type="button"
+                                            onClick={useSavedAddress}
+                                            className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-xs text-[#CFAF63] hover:border-[#FF6A00] hover:text-[#FF6A00]"
+                                        >
+                                            Use Saved Address
+                                        </button>
+                                    ) : null}
+                                    {locationMessage ? <span className="text-xs text-[#F5F5F5]/70">{locationMessage}</span> : null}
+                                </div>
+                                <textarea
+                                    rows={3}
+                                    value={form.address}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
+                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                                />
+                            </label>
+                            {selectedPoint ? (
+                                <div className="space-y-2">
+                                    <p className="text-sm text-[#F5F5F5]/75">Map View (move pin to edit location)</p>
+                                    <CheckoutLocationPicker value={selectedPoint} onChange={onMapPointChange} />
+                                    <p className="text-xs text-[#F5F5F5]/65">
+                                        Lat: {selectedPoint.latitude.toFixed(6)}, Lng: {selectedPoint.longitude.toFixed(6)}
+                                    </p>
+                                </div>
                             ) : null}
-                            {locationMessage ? <span className="text-xs text-[#F5F5F5]/70">{locationMessage}</span> : null}
-                        </div>
-                        <textarea
-                            rows={3}
-                            value={form.address}
-                            onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
-                        />
-                    </label>
-                    {selectedPoint ? (
-                        <div className="space-y-2">
-                            <p className="text-sm text-[#F5F5F5]/75">Map View (move pin to edit location)</p>
-                            <CheckoutLocationPicker value={selectedPoint} onChange={onMapPointChange} />
-                            <p className="text-xs text-[#F5F5F5]/65">
-                                Lat: {selectedPoint.latitude.toFixed(6)}, Lng: {selectedPoint.longitude.toFixed(6)}
-                            </p>
-                        </div>
-                    ) : null}
-                    <label className="block text-sm text-[#F5F5F5]/75">
-                        Delivery Instructions
-                        <textarea
-                            rows={2}
-                            value={form.instructions}
-                            onChange={(e) => setForm((prev) => ({ ...prev, instructions: e.target.value }))}
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
-                            placeholder="Gate number, landmark, call on arrival..."
-                        />
-                    </label>
-                    <label className="block text-sm text-[#F5F5F5]/75">
-                        Payment Option
-                        <select
-                            value={form.payment}
-                            onChange={(e) => setForm((prev) => ({ ...prev, payment: e.target.value }))}
-                            className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
-                        >
-                            <option value="UPI">UPI</option>
-                            <option value="Card">Card</option>
-                            <option value="Cash">Cash on delivery</option>
-                        </select>
-                    </label>
+                            <label className="block text-sm text-[#F5F5F5]/75">
+                                Delivery Instructions
+                                <textarea
+                                    rows={2}
+                                    value={form.instructions}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, instructions: e.target.value }))}
+                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                                    placeholder="Gate number, landmark, call on arrival..."
+                                />
+                            </label>
+                            <label className="block text-sm text-[#F5F5F5]/75">
+                                Payment Option
+                                <select
+                                    value={form.payment}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, payment: e.target.value }))}
+                                    className="mt-2 w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                                >
+                                    <option value="UPI">UPI</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Cash">Cash on delivery</option>
+                                </select>
+                            </label>
+                        </>
+                    )}
                 </div>
             </section>
 
             <aside className="glass-card h-fit rounded-3xl border border-[#CFAF63]/20 p-7">
                 <h2 className="font-(--font-heading) text-3xl text-[#F5F5F5]">Order Summary</h2>
-                <div className="mt-4 rounded-2xl border border-[#CFAF63]/20 bg-[#121212] p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="text-xs uppercase tracking-[0.14em] text-[#CFAF63]">Coupon</p>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setShowAvailableCoupons((prev) => !prev);
-                            }}
-                            className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-[11px] text-[#CFAF63]"
-                        >
-                            {showAvailableCoupons ? "Hide Coupons" : "Available Coupons"}
-                        </button>
-                    </div>
-                    {bestCoupon && !appliedCoupon ? (
-                        <p className="mb-2 text-xs text-[#4FE0A6]">
-                            Best Coupon Available: {bestCoupon.code} (Save ₹{formatCurrency(bestCoupon.discount)})
-                        </p>
-                    ) : null}
-                    <div className="flex gap-2">
-                        <input
-                            value={couponInput}
-                            onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
-                            placeholder="Enter Coupon Code"
-                            disabled={Boolean(appliedCoupon)}
-                            className="flex-1 rounded-xl border border-[#CFAF63]/25 bg-[#0F0F0F] px-3 py-2 text-sm text-[#F5F5F5] placeholder-[#777] disabled:opacity-70"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => {
-                                void applyCoupon();
-                            }}
-                            disabled={couponApplying || Boolean(appliedCoupon)}
-                            className="rounded-xl border border-[#CFAF63]/35 px-4 py-2 text-sm text-[#CFAF63] disabled:opacity-60"
-                        >
-                            {couponApplying ? "Applying..." : "Apply"}
-                        </button>
-                        {appliedCoupon ? (
+
+                {membership ? (
+                    <div className="mt-4 space-y-3">
+                        {/* Segmented Tab Switcher */}
+                        <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
                             <button
                                 type="button"
                                 onClick={() => {
+                                    setSelectedOfferType("membership");
                                     setAppliedCoupon(null);
-                                    setCouponMessage("Coupon removed");
+                                    setCouponMessage("");
                                 }}
-                                className="rounded-xl border border-rose-400/35 px-3 py-2 text-sm text-rose-300"
+                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition cursor-pointer ${
+                                    selectedOfferType === "membership"
+                                        ? "bg-purple-600 text-white shadow-lg ring-1 ring-purple-400"
+                                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+                                }`}
                             >
-                                Remove
+                                <span>💳 Member Pass ({membership.cardCode})</span>
                             </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSelectedOfferType("coupon");
+                                }}
+                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition cursor-pointer ${
+                                    selectedOfferType === "coupon"
+                                        ? "bg-amber-500 text-black shadow-lg ring-1 ring-amber-400"
+                                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+                                }`}
+                            >
+                                <span>🎟️ Promo Coupon</span>
+                            </button>
+                        </div>
+
+                        {/* 1. Membership Pass View */}
+                        {selectedOfferType === "membership" && (
+                            <div className="overflow-hidden rounded-2xl border border-purple-500/40 bg-gradient-to-r from-purple-950/60 via-[#180a29] to-black p-4 shadow-lg space-y-3">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="rounded-full bg-purple-500/20 px-2.5 py-0.5 font-mono text-xs font-bold text-purple-300 border border-purple-500/40">
+                                                {membership.cardCode}
+                                            </span>
+                                            <span className="font-bold text-white text-sm">
+                                                {membership.cardType.toUpperCase()} PRIVILEGE PASS
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-zinc-400 mt-1">
+                                            {membership.cardType === "master"
+                                                ? `₹${remainingMasterCredit} / ₹${membership.yearlyDiscountLimit || 3000} Free Credit (1-Yr Validity)`
+                                                : `${membership.discountPercent}% Exclusive Member Discount`}
+                                        </p>
+                                    </div>
+                                    <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 border border-emerald-500/30">
+                                        ACTIVE
+                                    </span>
+                                </div>
+
+                                {/* Master Card Choice: ₹500 Free Credit vs 15% Discount */}
+                                {membership.cardType === "master" && (
+                                    <div className="space-y-2 pt-2 border-t border-purple-500/20">
+                                        <p className="text-[11px] font-semibold text-purple-300">Choose Master Benefit to Apply:</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                disabled={!isMasterCreditAvailable}
+                                                onClick={() => {
+                                                    setMasterDiscountMode("credit_500");
+                                                }}
+                                                className={`rounded-xl p-2.5 text-left border transition text-xs cursor-pointer ${
+                                                    masterDiscountMode === "credit_500" && isMasterCreditAvailable
+                                                        ? "border-purple-400 bg-purple-600/30 text-white shadow-md ring-1 ring-purple-400"
+                                                        : "border-zinc-800 bg-zinc-900/80 text-zinc-400 hover:border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold">✨ ₹500 Free Credit</span>
+                                                    {masterDiscountMode === "credit_500" && isMasterCreditAvailable && (
+                                                        <span className="text-[10px] bg-purple-500 px-1.5 py-0.5 rounded text-white font-bold">Active</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-zinc-400 mt-1 font-normal">
+                                                    {isMasterCreditAvailable ? `₹${remainingMasterCredit} credit balance` : "Credit limit exhausted (₹0)"}
+                                                </p>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setMasterDiscountMode("percent_15");
+                                                }}
+                                                className={`rounded-xl p-2.5 text-left border transition text-xs cursor-pointer ${
+                                                    masterDiscountMode === "percent_15" || !isMasterCreditAvailable
+                                                        ? "border-purple-400 bg-purple-600/30 text-white shadow-md ring-1 ring-purple-400"
+                                                        : "border-zinc-800 bg-zinc-900/80 text-zinc-400 hover:border-zinc-700"
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold">🏷️ 15% Member Discount</span>
+                                                    {(masterDiscountMode === "percent_15" || !isMasterCreditAvailable) && (
+                                                        <span className="text-[10px] bg-purple-500 px-1.5 py-0.5 rounded text-white font-bold">Active</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-zinc-400 mt-1 font-normal">
+                                                    15% off cart subtotal
+                                                </p>
+                                            </button>
+                                        </div>
+
+                                        {subtotal < 1000 && (
+                                            <p className="text-xs text-amber-300 bg-amber-500/10 rounded-xl p-2 border border-amber-500/20">
+                                                ⚠️ Master discount requires a minimum bill of ₹1,000. Add <strong>₹{(1000 - subtotal).toFixed(2)}</strong> more to unlock!
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* 2. Coupon View (when user switched to Promo Coupon tab) */}
+                        {selectedOfferType === "coupon" && (
+                            <div className="rounded-2xl border border-amber-500/30 bg-[#121212] p-4 space-y-3">
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-xs uppercase tracking-[0.14em] text-[#CFAF63] font-bold">Promo Coupon</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowAvailableCoupons((prev) => !prev);
+                                        }}
+                                        className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-[11px] text-[#CFAF63]"
+                                    >
+                                        {showAvailableCoupons ? "Hide Coupons" : "Available Coupons"}
+                                    </button>
+                                </div>
+
+                                {bestCoupon && !appliedCoupon ? (
+                                    <p className="text-xs text-[#4FE0A6]">
+                                        Best Coupon: <strong>{bestCoupon.code}</strong> (Save ₹{formatCurrency(bestCoupon.discount)})
+                                    </p>
+                                ) : null}
+
+                                <div className="flex gap-2">
+                                    <input
+                                        value={couponInput}
+                                        onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
+                                        placeholder="Enter Coupon Code"
+                                        disabled={Boolean(appliedCoupon)}
+                                        className="flex-1 rounded-xl border border-[#CFAF63]/25 bg-[#0F0F0F] px-3 py-2 text-sm text-[#F5F5F5] placeholder-[#777] disabled:opacity-70"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            void applyCoupon();
+                                        }}
+                                        disabled={couponApplying || Boolean(appliedCoupon)}
+                                        className="rounded-xl border border-[#CFAF63]/35 px-4 py-2 text-sm text-[#CFAF63] disabled:opacity-60 font-semibold"
+                                    >
+                                        {couponApplying ? "Applying..." : "Apply"}
+                                    </button>
+                                    {appliedCoupon ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setAppliedCoupon(null);
+                                                setCouponMessage("Coupon removed");
+                                            }}
+                                            className="rounded-xl border border-rose-400/35 px-3 py-2 text-sm text-rose-300"
+                                        >
+                                            Remove
+                                        </button>
+                                    ) : null}
+                                </div>
+
+                                {showAvailableCoupons ? (
+                                    <div className="mt-3 space-y-2 rounded-xl border border-[#CFAF63]/20 bg-[#0E0E0E] p-2">
+                                        {loadingAvailableCoupons ? (
+                                            <p className="px-2 py-2 text-xs text-[#F5F5F5]/70">Loading coupons...</p>
+                                        ) : null}
+                                        {!loadingAvailableCoupons && !availableCoupons.length ? (
+                                            <p className="px-2 py-2 text-xs text-[#F5F5F5]/70">No active coupons right now.</p>
+                                        ) : null}
+                                        {!loadingAvailableCoupons
+                                            ? availableCoupons.map((coupon) => (
+                                                <div key={coupon.code} className="rounded-lg border border-[#CFAF63]/20 bg-[#121212] p-2 text-xs text-[#F5F5F5]/80">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className="rounded-md border border-[#CFAF63]/35 px-2 py-1 font-semibold tracking-wide text-[#F5F5F5]">
+                                                            {coupon.code}
+                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    void copyCouponCode(coupon.code);
+                                                                }}
+                                                                className="rounded-md border border-[#CFAF63]/35 px-2 py-1 text-[#CFAF63]"
+                                                            >
+                                                                Copy
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                disabled={!coupon.canApply || couponApplying}
+                                                                onClick={() => {
+                                                                    setCouponInput(coupon.code);
+                                                                    void applyCoupon(coupon.code);
+                                                                }}
+                                                                className="rounded-md border border-[#4FE0A6]/40 px-2 py-1 text-[#4FE0A6] disabled:opacity-50"
+                                                            >
+                                                                Use
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <p className="mt-1 text-[#F5F5F5]/65">
+                                                        {coupon.type === "free_delivery"
+                                                            ? "Free delivery"
+                                                            : coupon.type === "flat"
+                                                                ? `Flat ₹${formatCurrency(coupon.value)} off`
+                                                                : `${coupon.value}% off${coupon.maxDiscount ? ` (max ₹${formatCurrency(coupon.maxDiscount)})` : ""}`}
+                                                    </p>
+                                                </div>
+                                            ))
+                                            : null}
+                                    </div>
+                                ) : null}
+
+                                {couponMessage ? (
+                                    <p className={`text-xs ${appliedCoupon ? "text-[#4FE0A6]" : "text-rose-300"}`}>{couponMessage}</p>
+                                ) : null}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    /* Default Coupon Box for Non-Members */
+                    <div className="mt-4 rounded-2xl border border-[#CFAF63]/20 bg-[#121212] p-3">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-xs uppercase tracking-[0.14em] text-[#CFAF63]">Coupon</p>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowAvailableCoupons((prev) => !prev);
+                                }}
+                                className="rounded-full border border-[#CFAF63]/35 px-3 py-1 text-[11px] text-[#CFAF63]"
+                            >
+                                {showAvailableCoupons ? "Hide Coupons" : "Available Coupons"}
+                            </button>
+                        </div>
+                        {bestCoupon && !appliedCoupon ? (
+                            <p className="mb-2 text-xs text-[#4FE0A6]">
+                                Best Coupon Available: {bestCoupon.code} (Save ₹{formatCurrency(bestCoupon.discount)})
+                            </p>
+                        ) : null}
+                        <div className="flex gap-2">
+                            <input
+                                value={couponInput}
+                                onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
+                                placeholder="Enter Coupon Code"
+                                disabled={Boolean(appliedCoupon)}
+                                className="flex-1 rounded-xl border border-[#CFAF63]/25 bg-[#0F0F0F] px-3 py-2 text-sm text-[#F5F5F5] placeholder-[#777] disabled:opacity-70"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    void applyCoupon();
+                                }}
+                                disabled={couponApplying || Boolean(appliedCoupon)}
+                                className="rounded-xl border border-[#CFAF63]/35 px-4 py-2 text-sm text-[#CFAF63] disabled:opacity-60 font-semibold"
+                            >
+                                {couponApplying ? "Applying..." : "Apply"}
+                            </button>
+                            {appliedCoupon ? (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAppliedCoupon(null);
+                                        setCouponMessage("Coupon removed");
+                                    }}
+                                    className="rounded-xl border border-rose-400/35 px-3 py-2 text-sm text-rose-300"
+                                >
+                                    Remove
+                                </button>
+                            ) : null}
+                        </div>
+                        {showAvailableCoupons ? (
+                            <div className="mt-3 space-y-2 rounded-xl border border-[#CFAF63]/20 bg-[#0E0E0E] p-2">
+                                {loadingAvailableCoupons ? (
+                                    <p className="px-2 py-2 text-xs text-[#F5F5F5]/70">Loading coupons...</p>
+                                ) : null}
+                                {!loadingAvailableCoupons && !availableCoupons.length ? (
+                                    <p className="px-2 py-2 text-xs text-[#F5F5F5]/70">No active coupons right now.</p>
+                                ) : null}
+                                {!loadingAvailableCoupons
+                                    ? availableCoupons.map((coupon) => (
+                                        <div key={coupon.code} className="rounded-lg border border-[#CFAF63]/20 bg-[#121212] p-2 text-xs text-[#F5F5F5]/80">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="rounded-md border border-[#CFAF63]/35 px-2 py-1 font-semibold tracking-wide text-[#F5F5F5]">
+                                                    {coupon.code}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            void copyCouponCode(coupon.code);
+                                                        }}
+                                                        className="rounded-md border border-[#CFAF63]/35 px-2 py-1 text-[#CFAF63]"
+                                                    >
+                                                        Copy
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={!coupon.canApply || couponApplying}
+                                                        onClick={() => {
+                                                            setCouponInput(coupon.code);
+                                                            void applyCoupon(coupon.code);
+                                                        }}
+                                                        className="rounded-md border border-[#4FE0A6]/40 px-2 py-1 text-[#4FE0A6] disabled:opacity-50"
+                                                    >
+                                                        Use
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <p className="mt-1 text-[#F5F5F5]/65">
+                                                {coupon.type === "free_delivery"
+                                                    ? "Free delivery"
+                                                    : coupon.type === "flat"
+                                                        ? `Flat ₹${formatCurrency(coupon.value)} off`
+                                                        : `${coupon.value}% off${coupon.maxDiscount ? ` (max ₹${formatCurrency(coupon.maxDiscount)})` : ""}`}
+                                            </p>
+                                        </div>
+                                    ))
+                                    : null}
+                            </div>
+                        ) : null}
+                        {couponMessage ? (
+                            <p className={`mt-2 text-xs ${appliedCoupon ? "text-[#4FE0A6]" : "text-rose-300"}`}>{couponMessage}</p>
                         ) : null}
                     </div>
-                    {showAvailableCoupons ? (
-                        <div className="mt-3 space-y-2 rounded-xl border border-[#CFAF63]/20 bg-[#0E0E0E] p-2">
-                            {loadingAvailableCoupons ? (
-                                <p className="px-2 py-2 text-xs text-[#F5F5F5]/70">Loading coupons...</p>
-                            ) : null}
-                            {!loadingAvailableCoupons && !availableCoupons.length ? (
-                                <p className="px-2 py-2 text-xs text-[#F5F5F5]/70">No active coupons right now.</p>
-                            ) : null}
-                            {!loadingAvailableCoupons
-                                ? availableCoupons.map((coupon) => (
-                                    <div key={coupon.code} className="rounded-lg border border-[#CFAF63]/20 bg-[#121212] p-2 text-xs text-[#F5F5F5]/80">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span className="rounded-md border border-[#CFAF63]/35 px-2 py-1 font-semibold tracking-wide text-[#F5F5F5]">
-                                                {coupon.code}
-                                            </span>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        void copyCouponCode(coupon.code);
-                                                    }}
-                                                    className="rounded-md border border-[#CFAF63]/35 px-2 py-1 text-[#CFAF63]"
-                                                >
-                                                    Copy
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    disabled={!coupon.canApply || couponApplying}
-                                                    onClick={() => {
-                                                        setCouponInput(coupon.code);
-                                                        void applyCoupon(coupon.code);
-                                                    }}
-                                                    className="rounded-md border border-[#4FE0A6]/40 px-2 py-1 text-[#4FE0A6] disabled:opacity-50"
-                                                >
-                                                    Use
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <p className="mt-1 text-[#F5F5F5]/65">
-                                            {coupon.type === "free_delivery"
-                                                ? "Free delivery"
-                                                : coupon.type === "flat"
-                                                    ? `Flat ₹${formatCurrency(coupon.value)} off`
-                                                    : `${coupon.value}% off${coupon.maxDiscount ? ` (max ₹${formatCurrency(coupon.maxDiscount)})` : ""}`}
-                                        </p>
-                                        <p className="mt-1 text-[#F5F5F5]/55">
-                                            Min order ₹{formatCurrency(coupon.minOrder)} · Est. save ₹{formatCurrency(coupon.estimatedDiscount)}
-                                        </p>
-                                        {coupon.usageLimit ? (
-                                            <p className="mt-1 text-[#F5F5F5]/55">
-                                                Uses: {coupon.usageCount || 0}/{coupon.usageLimit}
-                                                {coupon.perUserLimit ? ` · Per user: ${coupon.perUserLimit}` : ""}
-                                            </p>
-                                        ) : null}
-                                        {!coupon.canApply && coupon.reason ? (
-                                            <p className="mt-1 text-rose-300">{coupon.reason}</p>
-                                        ) : null}
-                                    </div>
-                                ))
-                                : null}
-                        </div>
-                    ) : null}
-                    {couponMessage ? (
-                        <p className={`mt-2 text-xs ${appliedCoupon ? "text-[#4FE0A6]" : "text-rose-300"}`}>{couponMessage}</p>
-                    ) : null}
-                </div>
+                )}
                 <ul className="mt-4 space-y-2 text-sm">
                     {cart.length ? (
                         cart.map((item) => (
@@ -1053,9 +1382,30 @@ export default function CheckoutPage() {
                     <span className="text-[#F5F5F5]/75">Subtotal</span>
                     <span className="text-[#F5F5F5]">₹{formatCurrency(subtotal)}</span>
                 </div>
+                {/* STRICT MUTUAL EXCLUSIVITY: Show ONLY the single active discount */}
+                {isMembershipBenefitActive && membershipDiscountAmount > 0 && (
+                    <div className="mt-2 flex items-center justify-between text-purple-300">
+                        <span className="flex items-center gap-1.5 font-semibold">
+                            {membership?.cardType === "master" && masterDiscountMode === "credit_500" && isMasterCreditAvailable ? (
+                                <>💳 MASTER Free Credit</>
+                            ) : (
+                                <>💳 {membership?.cardType.toUpperCase()} Card ({membership?.discountPercent}%)</>
+                            )}
+                        </span>
+                        <span className="text-emerald-400 font-mono font-bold">-₹{formatCurrency(membershipDiscountAmount)}</span>
+                    </div>
+                )}
+                {isCouponActive && appliedCoupon && (
+                    <div className="mt-2 flex items-center justify-between text-emerald-300">
+                        <span className="flex items-center gap-1.5 font-semibold">
+                            🎟️ Coupon ({appliedCoupon.code})
+                        </span>
+                        <span className="text-emerald-400 font-mono font-bold">-₹{formatCurrency(appliedCoupon.discount)}</span>
+                    </div>
+                )}
                 <div className="mt-2 flex items-center justify-between">
-                    <span className="text-[#F5F5F5]/75">Discount</span>
-                    <span className="text-[#4FE0A6]">-₹{formatCurrency(discountAmount)}</span>
+                    <span className="text-[#F5F5F5]/75">Total Discount</span>
+                    <span className="text-[#4FE0A6] font-mono font-bold">-₹{formatCurrency(discountAmount)}</span>
                 </div>
                 <div className="mt-2 flex items-center justify-between">
                     <span className="text-[#F5F5F5]/75">Delivery Charge</span>
@@ -1069,8 +1419,8 @@ export default function CheckoutPage() {
                     <span className="text-[#F5F5F5]/75">Total Amount</span>
                     <span className="text-2xl text-[#CFAF63]">₹{formatCurrency(total)}</span>
                 </div>
-                {appliedCoupon ? (
-                    <p className="mt-2 text-xs text-[#4FE0A6]">You saved ₹{formatCurrency(discountAmount)}</p>
+                {discountAmount > 0 ? (
+                    <p className="mt-2 text-xs text-[#4FE0A6]">You saved ₹{formatCurrency(discountAmount)} on this order!</p>
                 ) : null}
                 {!minimumOrderMet && cart.length ? (
                     <p className="mt-3 rounded-xl border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
@@ -1083,9 +1433,17 @@ export default function CheckoutPage() {
                 <button
                     onClick={placeOrder}
                     disabled={!cart.length || placing || !minimumOrderMet}
-                    className="mt-5 w-full rounded-full bg-linear-to-r from-[#CFAF63] via-[#FFD78B] to-[#FF6A00] px-4 py-3 font-semibold text-[#111] disabled:opacity-50"
+                    className="mt-5 w-full rounded-full bg-linear-to-r from-[#CFAF63] via-[#FFD78B] to-[#FF6A00] px-4 py-3 font-semibold text-[#111] disabled:opacity-50 cursor-pointer shadow-lg hover:opacity-95 transition"
                 >
-                    {placing ? "Processing..." : form.payment === "Cash" ? "Place Order" : "Pay & Place Order"}
+                    {placing
+                        ? "Processing..."
+                        : orderType === "dine_in"
+                            ? dineInPaymentMode === "pay_counter"
+                                ? `Confirm Dine-In · Pay ₹${formatCurrency(total)} at Counter`
+                                : `Pay ₹${formatCurrency(total)} & Confirm Dine-In`
+                            : form.payment === "Cash"
+                                ? `Place Takeaway Order (₹${formatCurrency(total)})`
+                                : `Pay ₹${formatCurrency(total)} & Place Order`}
                 </button>
                 {error ? <p className="mt-3 text-sm text-rose-300">{error}</p> : null}
             </aside>

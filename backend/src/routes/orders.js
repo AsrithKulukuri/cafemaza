@@ -7,6 +7,7 @@ import { Order } from "../models/Order.js";
 import { MenuItem } from "../models/MenuItem.js";
 import { Coupon } from "../models/Coupon.js";
 import { User } from "../models/User.js";
+import { PaymentSession } from "../models/PaymentSession.js";
 import { NotificationSetting } from "../models/NotificationSetting.js";
 import { auth, optionalAuth } from "../middlewares/auth.js";
 import { permit } from "../middlewares/roles.js";
@@ -27,6 +28,9 @@ import {
     normalizeCouponCode,
     validateCouponForSubtotal,
 } from "../utils/pricing.js";
+import { calculateBillDiscount } from "../services/membershipService.js";
+import { MembershipCard } from "../models/MembershipCard.js";
+import { Customer } from "../models/Customer.js";
 
 const router = express.Router();
 
@@ -84,9 +88,9 @@ function getRazorpayClient() {
 }
 
 async function resolveMenuItemFromPayload(item) {
-    const providedMenuItemId = String(item?.menuItemId || "").trim();
+    const providedMenuItemId = String(item?.menuItemId || item?._id || "").trim();
 
-    if (providedMenuItemId) {
+    if (providedMenuItemId && mongoose.isValidObjectId(providedMenuItemId)) {
         const menuItem = await MenuItem.findById(providedMenuItemId);
         if (menuItem) {
             return menuItem;
@@ -94,10 +98,8 @@ async function resolveMenuItemFromPayload(item) {
     }
 
     const providedName = String(item?.name || "").trim();
-    const providedPrice = Number(item?.price);
-
-    if (!providedName || !Number.isFinite(providedPrice)) {
-        throw new Error("One or more menu items are invalid");
+    if (!providedName) {
+        throw new Error("One or more menu items are invalid or missing an identifier.");
     }
 
     const existing = await MenuItem.findOne({
@@ -108,19 +110,7 @@ async function resolveMenuItemFromPayload(item) {
         return existing;
     }
 
-    return MenuItem.create({
-        name: providedName,
-        category: String(item?.category || "Uncategorized").trim() || "Uncategorized",
-        price: providedPrice,
-        image: String(item?.image || "").trim(),
-        isVeg: Boolean(item?.isVeg),
-        isPopular: Boolean(item?.isPopular),
-        isBestSeller: Boolean(item?.isBestSeller),
-        isSoldOut: Boolean(item?.isSoldOut),
-        tags: Array.isArray(item?.tags)
-            ? item.tags.map((tag) => String(tag).trim().toLowerCase()).filter(Boolean)
-            : [],
-    });
+    throw new Error(`Menu item '${providedName}' is not found in the official catalog.`);
 }
 
 async function resolveMenuItemsAndTotal(items) {
@@ -134,9 +124,27 @@ async function resolveMenuItemsAndTotal(items) {
     for (const item of items) {
         const menuItem = await resolveMenuItemFromPayload(item);
         menuItems.push(menuItem);
-        const payloadPrice = Number(item?.price);
-        const unitPrice = Number.isFinite(payloadPrice) ? payloadPrice : Number(menuItem.price || 0);
-        subtotal += unitPrice * Number(item.quantity || 0);
+
+        const qty = Math.max(1, Math.floor(Number(item.quantity) || 1));
+
+        // Resolve unit price strictly from database record
+        let unitPrice = Number(menuItem.price || 0);
+
+        const variantName = String(item?.selectedVariant?.name || item?.variantName || "").trim();
+        if (variantName && Array.isArray(menuItem.variants) && menuItem.variants.length > 0) {
+            const matchedVariant = menuItem.variants.find(
+                (v) => String(v.name).trim().toLowerCase() === variantName.toLowerCase()
+            );
+            if (matchedVariant && Number.isFinite(Number(matchedVariant.price))) {
+                unitPrice = Number(matchedVariant.price);
+            }
+        }
+
+        if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+            throw new Error(`Price for '${menuItem.name}' is invalid in the system.`);
+        }
+
+        subtotal += unitPrice * qty;
     }
 
     return { menuItems, subtotal };
@@ -167,8 +175,56 @@ async function getCouponUsageLimitViolation({ couponDoc, userId }) {
     return null;
 }
 
+async function calculatePricingForOrder({ user, customerPhone, subtotal, coupon, applyDeliveryCharge, masterDiscountChoice = "credit_500" }) {
+    const basePricing = calculateOrderPricingWithCoupon({ subtotal, coupon, applyDeliveryCharge });
+
+    // Rule: Membership Card offer and Coupons CANNOT be clubbed. Only one applies!
+    if (coupon && coupon.code) {
+        return {
+            ...basePricing,
+            membershipCardCode: "",
+            membershipDiscountAmount: 0,
+        };
+    }
+
+    let membershipCalc = null;
+    try {
+        membershipCalc = await calculateBillDiscount({
+            customerId: user?._id,
+            customerPhone: user?.phone || customerPhone,
+            subtotal,
+            masterDiscountChoice,
+        });
+    } catch {
+        // ignore
+    }
+
+    const membershipDiscount = membershipCalc?.discountAmount || 0;
+
+    if (membershipDiscount > 0) {
+        const taxable = Math.max(0, subtotal - membershipDiscount);
+        const gst = basePricing.isMinimumOrderMet ? Math.round(taxable * 0.05 * 100) / 100 : 0;
+        const total = Math.max(0, taxable + basePricing.delivery + gst);
+        return {
+            ...basePricing,
+            discount: membershipDiscount,
+            gst,
+            total,
+            membershipCardCode: membershipCalc?.cardCode || "",
+            membershipDiscountAmount: membershipDiscount,
+            membershipDiscountType: membershipCalc?.discountType || "",
+        };
+    }
+
+    return {
+        ...basePricing,
+        membershipCardCode: membershipCalc?.cardCode || "",
+        membershipDiscountAmount: 0,
+    };
+}
+
 async function createRazorpayOrderFromPayload(payload, user) {
-    const { items, address, paymentMethod, couponCode, orderType, tableNumber } = payload;
+    const { items, address, paymentMethod, couponCode, orderType, tableNumber, customerPhone, masterDiscountChoice } = payload;
 
     if (!address || !paymentMethod) {
         throw new Error("items, address and paymentMethod are required");
@@ -180,11 +236,10 @@ async function createRazorpayOrderFromPayload(payload, user) {
 
     const { subtotal } = await resolveMenuItemsAndTotal(items);
     let coupon = null;
-    let couponDoc = null;
 
     if (couponCode) {
         const normalizedCode = normalizeCouponCode(couponCode);
-        couponDoc = await Coupon.findOne({ code: normalizedCode });
+        const couponDoc = await Coupon.findOne({ code: normalizedCode });
 
         const limitViolation = await getCouponUsageLimitViolation({
             couponDoc,
@@ -205,7 +260,14 @@ async function createRazorpayOrderFromPayload(payload, user) {
 
     const resolvedOrderType = normalizeOrderType(orderType, tableNumber);
     const applyDeliveryCharge = resolvedOrderType === "delivery";
-    const pricing = calculateOrderPricingWithCoupon({ subtotal, coupon, applyDeliveryCharge });
+    const pricing = await calculatePricingForOrder({
+        user,
+        customerPhone: customerPhone || user?.phone,
+        subtotal,
+        coupon,
+        applyDeliveryCharge,
+        masterDiscountChoice: masterDiscountChoice || "credit_500",
+    });
 
     if (!pricing.isMinimumOrderMet) {
         throw new Error(`Minimum order is INR ${pricing.minimumOrder}`);
@@ -227,6 +289,31 @@ async function createRazorpayOrderFromPayload(payload, user) {
             source: "cafe_maza_checkout",
             paymentMethod: String(paymentMethod),
         },
+    });
+
+    await PaymentSession.create({
+        razorpayOrderId: razorpayOrder.id,
+        amountInPaise,
+        currency: "INR",
+        userId: user?._id || null,
+        customerPhone: customerPhone || user?.phone || "",
+        customerName: user?.name || payload.customerName || "",
+        customerEmail: user?.email || payload.customerEmail || "",
+        payload: {
+            items,
+            address,
+            paymentMethod: String(paymentMethod),
+            couponCode: coupon?.code || "",
+            orderType: resolvedOrderType,
+            tableNumber,
+            customerPhone: customerPhone || user?.phone || "",
+            customerName: user?.name || payload.customerName || "",
+            customerEmail: user?.email || payload.customerEmail || "",
+            specialInstructions: payload.specialInstructions,
+            masterDiscountChoice,
+        },
+        pricing,
+        status: "created",
     });
 
     return {
@@ -420,7 +507,9 @@ async function createOrderFromPayload({ user, payload, paymentStatus, paymentPro
         coupon = couponCheck.coupon;
     }
 
-    const pricing = calculateOrderPricingWithCoupon({
+    const pricing = await calculatePricingForOrder({
+        user,
+        customerPhone: customerPhone || user?.phone,
         subtotal,
         coupon,
         applyDeliveryCharge: resolvedOrderType === "delivery",
@@ -1279,6 +1368,7 @@ router.post("/payment-success-callback", auth, async (req, res, next) => {
             return res.status(400).json({ message: "Invalid Razorpay signature" });
         }
 
+        // Prevent duplicate processing of the same payment
         const duplicate = await Order.findOne({ paymentReference: razorpayPaymentId });
         if (duplicate) {
             return res.status(200).json({
@@ -1288,24 +1378,43 @@ router.post("/payment-success-callback", auth, async (req, res, next) => {
             });
         }
 
-        const payload = {
-            ...req.body,
-            paymentMethod: paymentMethod || "UPI",
-            customerPhone: req.user.phone || req.body.customerPhone,
+        // Load authoritative server-verified session
+        const session = await PaymentSession.findOne({ razorpayOrderId });
+        if (!session) {
+            return res.status(400).json({ message: "Payment session not found or expired" });
+        }
+
+        if (session.status === "paid" && session.orderId) {
+            return res.status(200).json({
+                message: "Order already processed for this payment",
+                orderId: session.orderId,
+                paymentStatus: "paid",
+            });
+        }
+
+        const verifiedPayload = {
+            ...session.payload,
+            paymentMethod: paymentMethod || session.payload.paymentMethod || "UPI",
+            customerPhone: req.user.phone || session.payload.customerPhone,
         };
 
         const { created, menuItems, pricing } = await createOrderFromPayload({
             user: req.user,
-            payload,
+            payload: verifiedPayload,
             paymentStatus: "paid",
             paymentProvider: "razorpay",
             paymentReference: razorpayPaymentId,
         });
 
+        session.status = "paid";
+        session.razorpayPaymentId = razorpayPaymentId;
+        session.orderId = created._id;
+        await session.save();
+
         const whatsappNotification = await sendOrderWhatsAppNotifications({
             createdOrder: created,
             user: req.user,
-            payload,
+            payload: verifiedPayload,
             menuItems,
         });
 
@@ -1339,9 +1448,6 @@ router.post("/payment-success-callback/public", async (req, res, next) => {
             razorpayPaymentId,
             razorpaySignature,
             paymentMethod,
-            customerPhone,
-            customerName,
-            customerEmail,
         } = req.body;
 
         if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
@@ -1354,6 +1460,7 @@ router.post("/payment-success-callback/public", async (req, res, next) => {
             return res.status(400).json({ message: "Invalid Razorpay signature" });
         }
 
+        // Prevent duplicate processing of the same payment
         const duplicate = await Order.findOne({ paymentReference: razorpayPaymentId });
         if (duplicate) {
             return res.status(200).json({
@@ -1363,30 +1470,48 @@ router.post("/payment-success-callback/public", async (req, res, next) => {
             });
         }
 
-        const customerUser = await getOrCreateCustomerUser({
-            name: customerName,
-            email: customerEmail,
-            phone: customerPhone,
-        });
+        // Load authoritative server-verified session
+        const session = await PaymentSession.findOne({ razorpayOrderId });
+        if (!session) {
+            return res.status(400).json({ message: "Payment session not found or expired" });
+        }
 
-        const payload = {
-            ...req.body,
-            paymentMethod: paymentMethod || "UPI",
-            customerPhone,
+        if (session.status === "paid" && session.orderId) {
+            return res.status(200).json({
+                message: "Order already processed for this payment",
+                orderId: session.orderId,
+                paymentStatus: "paid",
+            });
+        }
+
+        const verifiedPayload = {
+            ...session.payload,
+            paymentMethod: paymentMethod || session.payload.paymentMethod || "UPI",
         };
+
+        const customerUser = await getOrCreateCustomerUser({
+            name: session.customerName || verifiedPayload.customerName,
+            email: session.customerEmail || verifiedPayload.customerEmail,
+            phone: session.customerPhone || verifiedPayload.customerPhone,
+        });
 
         const { created, menuItems, pricing } = await createOrderFromPayload({
             user: customerUser,
-            payload,
+            payload: verifiedPayload,
             paymentStatus: "paid",
             paymentProvider: "razorpay",
             paymentReference: razorpayPaymentId,
         });
 
+        session.status = "paid";
+        session.razorpayPaymentId = razorpayPaymentId;
+        session.orderId = created._id;
+        await session.save();
+
         const whatsappNotification = await sendOrderWhatsAppNotifications({
             createdOrder: created,
             user: customerUser,
-            payload,
+            payload: verifiedPayload,
             menuItems,
         });
 
@@ -1556,34 +1681,26 @@ router.get("/user", auth, async (req, res, next) => {
     }
 });
 
-router.get("/public", async (req, res, next) => {
+router.get("/public", auth, async (req, res, next) => {
     try {
         const email = String(req.query.email || "").trim().toLowerCase();
         const phone = String(req.query.phone || "").trim();
 
-        if (!email && !phone) {
-            return res.status(400).json({ message: "email or phone is required" });
+        // Non-staff users can only query their own orders
+        const isStaff = req.user && ["admin", "manager", "staff"].includes(req.user.role);
+        const targetUserId = isStaff && email ? (await User.findOne({ email }))?._id : req.user._id;
+
+        const query = { userId: targetUserId };
+        if (isStaff && phone && !email) {
+            query.customerPhone = phone;
+            delete query.userId;
         }
 
-        let user = null;
-        if (email) {
-            user = await User.findOne({ email });
-        }
-
-        let orders = [];
-        if (user) {
-            orders = await Order.find({ userId: user._id })
-                .populate("items.menuItemId", "name price")
-                .populate("deliveryPartnerId", "name phone deliveryProfile")
-                .populate("deliveredBy", "name email role")
-                .sort({ createdAt: -1 });
-        } else if (phone) {
-            orders = await Order.find({ customerPhone: phone })
-                .populate("items.menuItemId", "name price")
-                .populate("deliveryPartnerId", "name phone deliveryProfile")
-                .populate("deliveredBy", "name email role")
-                .sort({ createdAt: -1 });
-        }
+        const orders = await Order.find(query)
+            .populate("items.menuItemId", "name price")
+            .populate("deliveryPartnerId", "name phone deliveryProfile")
+            .populate("deliveredBy", "name email role")
+            .sort({ createdAt: -1 });
 
         return res.json(orders);
     } catch (error) {

@@ -1,15 +1,19 @@
 import http from "http";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 
 import app from "./app.js";
 import { connectDatabase } from "./config/db.js";
 import { setSocketIO } from "./config/socket.js";
-import { logger } from "./utils/logger.js";
+import { logger, maskPhone } from "./utils/logger.js";
 import { scheduleDailyAnalytics } from "./jobs/computeAnalytics.js";
+import { User } from "./models/User.js";
+import { seedMembershipCards } from "../scripts/seed-membership-cards.js";
 
 dotenv.config({ override: true });
 
+const isProduction = String(process.env.NODE_ENV || "").toLowerCase() === "production";
 const configuredPort = Number(process.env.PORT || 5000);
 const enablePortFallback = String(process.env.PORT_AUTO_FALLBACK || "false").toLowerCase() === "true";
 const server = http.createServer(app);
@@ -27,12 +31,25 @@ const io = new Server(server, {
                 return;
             }
 
-            if (configuredOrigins.includes(origin) || origin.endsWith(".ngrok-free.app") || origin.endsWith(".ngrok-free.dev")) {
+            if (configuredOrigins.includes(origin)) {
                 callback(null, true);
                 return;
             }
 
-            callback(new Error("Not allowed by CORS"));
+            // In development only, allow localhost and dev tunneling
+            if (!isProduction) {
+                if (
+                    origin.startsWith("http://localhost:") ||
+                    origin.startsWith("http://127.0.0.1:") ||
+                    origin.endsWith(".ngrok-free.app") ||
+                    origin.endsWith(".ngrok-free.dev")
+                ) {
+                    callback(null, true);
+                    return;
+                }
+            }
+
+            callback(new Error("Socket CORS: Not allowed"));
         },
         methods: ["GET", "POST"],
         credentials: true,
@@ -50,7 +67,7 @@ function validateRuntimeEnv() {
         throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
     }
 
-    if (String(process.env.NODE_ENV || "").toLowerCase() === "production") {
+    if (isProduction) {
         const jwtSecret = String(process.env.JWT_SECRET || "");
         if (jwtSecret.length < 32 || /change_me|replace_with|dev_/i.test(jwtSecret)) {
             throw new Error("JWT_SECRET is weak or placeholder-like for production. Use a high-entropy secret (>= 32 chars).");
@@ -89,65 +106,119 @@ function startServer(initialPort) {
 
 setSocketIO(io);
 
-io.on("connection", (socket) => {
-    logger.info("Socket connected", { id: socket.id, origin: socket.handshake.headers.origin });
-    socket.on("join_order", (orderId) => {
-        socket.join(`order:${orderId}`);
+// Socket JWT Authentication Middleware
+io.use(async (socket, next) => {
+    try {
+        const token =
+            socket.handshake.auth?.token ||
+            socket.handshake.headers?.authorization?.replace("Bearer ", "");
 
-        const latest = latestOrderLocationById.get(String(orderId));
+        if (token) {
+            const jwtSecret = String(process.env.JWT_SECRET || "").trim();
+            if (jwtSecret) {
+                const decoded = jwt.verify(token, jwtSecret);
+                if (decoded && decoded.id) {
+                    const user = await User.findById(decoded.id).select("-password");
+                    if (user) {
+                        socket.user = user;
+                    }
+                }
+            }
+        }
+    } catch {
+        socket.user = null;
+    }
+    next();
+});
+
+io.on("connection", (socket) => {
+    logger.info("Socket connected", {
+        id: socket.id,
+        user: socket.user ? { id: socket.user._id, role: socket.user.role } : "anonymous",
+    });
+
+    // 1. Join Order Room for Live Updates
+    socket.on("join_order", (orderId) => {
+        if (!orderId) return;
+        const cleanId = String(orderId).trim();
+        socket.join(`order:${cleanId}`);
+
+        const latest = latestOrderLocationById.get(cleanId);
         if (latest) {
             socket.emit("location_update", latest);
         }
     });
 
-    // Allow admin dashboards to join an 'admins' room so they can receive admin-targeted events
+    // 2. Join Admin Room (Requires Staff / Admin Role)
     socket.on("join_admin", () => {
+        if (!socket.user || !["admin", "manager", "staff", "kitchen", "bearer"].includes(socket.user.role)) {
+            socket.emit("error", { message: "Unauthorized: Staff permission required to join admin room" });
+            return;
+        }
         socket.join("admins");
     });
 
-    // Location tracking: delivery partner sends location to customer and vice versa
+    // 3. Location tracking: delivery partner sends location to customer and vice versa
     socket.on("location_update", (data) => {
-        const { orderId, userType, latitude, longitude, accuracy, timestamp } = data;
+        const { orderId, userType, latitude, longitude, accuracy, timestamp } = data || {};
 
         if (!orderId || !userType || latitude === undefined || longitude === undefined) {
             socket.emit("error", { message: "Invalid location data" });
             return;
         }
 
+        const lat = Number(latitude);
+        const lng = Number(longitude);
+        if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            socket.emit("error", { message: "Invalid GPS coordinates" });
+            return;
+        }
+
+        // Only allow delivery partners or admins to broadcast delivery location
+        if (userType === "delivery") {
+            if (!socket.user || !["delivery", "admin", "manager"].includes(socket.user.role)) {
+                socket.emit("error", { message: "Unauthorized delivery location broadcast" });
+                return;
+            }
+        }
+
         const payload = {
-            orderId,
+            orderId: String(orderId),
             userType,
-            latitude,
-            longitude,
-            accuracy,
-            timestamp,
-            userId: data.userId,
-            deliveryPartnerName: data.deliveryPartnerName,
-            deliveryPartnerPhone: data.deliveryPartnerPhone,
+            latitude: lat,
+            longitude: lng,
+            accuracy: Number(accuracy) || 0,
+            timestamp: timestamp || Date.now(),
+            userId: socket.user?._id || data.userId,
+            deliveryPartnerName: socket.user?.name || data.deliveryPartnerName,
+            deliveryPartnerPhone: maskPhone(socket.user?.phone || data.deliveryPartnerPhone),
             deliveryAddress: data.deliveryAddress,
         };
 
         latestOrderLocationById.set(String(orderId), payload);
 
-        // Broadcast location to all users in the order room
-        // Delivery partner location goes to customer(s), customer location goes to delivery partner
+        // Broadcast location to all authorized users in the order room
         io.to(`order:${orderId}`).emit("location_update", payload);
     });
 
     socket.on("disconnect", () => {
         logger.info("Socket disconnected", { id: socket.id });
-        // No-op
     });
 });
 
 connectDatabase()
-    .then(() => {
+    .then(async () => {
         validateRuntimeEnv();
         startServer(configuredPort);
         try {
             scheduleDailyAnalytics(Number(process.env.ANALYTICS_DAYS || 90));
         } catch (err) {
             logger.warn("Failed to start analytics scheduler", { message: err?.message });
+        }
+        try {
+            await seedMembershipCards(false);
+        } catch (err) {
+            logger.warn("Failed to auto-seed membership cards", { message: err?.message });
         }
     })
     .catch((error) => {

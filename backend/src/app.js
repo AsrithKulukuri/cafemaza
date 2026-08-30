@@ -1,5 +1,7 @@
+import http from "http";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -12,7 +14,14 @@ import screeningRoutes from "./routes/screening.js";
 import adminRoutes from "./routes/admin.js";
 import promoBannerRoutes from "./routes/promoBanners.js";
 import whatsappWebhookRoutes from "./routes/whatsappWebhook.js";
+import membershipRoutes from "./routes/membership.js";
 import { errorHandler } from "./middlewares/error.js";
+import {
+    globalApiLimiter,
+    authLimiter,
+    orderLimiter,
+    membershipLimiter,
+} from "./middlewares/rateLimiter.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -20,26 +29,105 @@ const __dirname = path.dirname(__filename);
 const isProduction = String(process.env.NODE_ENV || "").toLowerCase() === "production";
 const logLevel = String(process.env.LOG_LEVEL || "").toLowerCase();
 
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000", credentials: true }));
+// 1. Security Headers (Helmet)
+app.use(
+    helmet({
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+        contentSecurityPolicy: isProduction ? undefined : false,
+    })
+);
+
+// 2. Strict CORS
+const allowedOrigins = String(process.env.FRONTEND_URL || "http://localhost:3000")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Allow server-to-server or non-browser tools (e.g. mobile apps / curl / SSR)
+            if (!origin) return callback(null, true);
+
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            // In development only, allow localhost and dev tools
+            if (!isProduction) {
+                if (
+                    origin.startsWith("http://localhost:") ||
+                    origin.startsWith("http://127.0.0.1:") ||
+                    origin.endsWith(".ngrok-free.app") ||
+                    origin.endsWith(".ngrok-free.dev")
+                ) {
+                    return callback(null, true);
+                }
+            }
+
+            return callback(new Error("CORS policy violation: Origin not allowed."));
+        },
+        credentials: true,
+    })
+);
+
+// 3. Body parser & static assets
 app.use(express.json({ limit: "1mb" }));
 app.use("/uploads", express.static(path.resolve(__dirname, "../../uploads")));
+
 if (!isProduction || logLevel === "debug") {
     app.use(morgan("dev"));
 }
 
+// 4. Rate Limiting
+app.use("/api", globalApiLimiter);
+
+// 5. Health Check
 app.get("/api/health", (req, res) => {
     res.json({ ok: true, service: "cafe-maza-backend" });
 });
 
-app.use("/api/auth", authRoutes);
+// 6. Routes
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/menu", menuRoutes);
-app.use("/api/orders", orderRoutes);
+app.use("/api/orders", orderLimiter, orderRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/screening", screeningRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/promo-banners", promoBannerRoutes);
 app.use("/api/whatsapp", whatsappWebhookRoutes);
+app.use("/api/membership", membershipLimiter, membershipRoutes);
 
+// 7. Global Error Handler
 app.use(errorHandler);
+
+// 8. Next.js Frontend Proxy (Routes all non-API web traffic to Next.js on port 3000)
+app.use((req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
+        return next();
+    }
+    const nextServerUrl = `http://127.0.0.1:3000${req.url}`;
+    const proxyReq = http.request(
+        nextServerUrl,
+        {
+            method: req.method,
+            headers: {
+                ...req.headers,
+                host: "127.0.0.1:3000",
+            },
+        },
+        (proxyRes) => {
+            res.writeHead(proxyRes.statusCode || 200, proxyRes.headers);
+            proxyRes.pipe(res);
+        }
+    );
+    proxyReq.on("error", () => {
+        next();
+    });
+    if (["POST", "PUT", "PATCH"].includes(req.method) && req.body) {
+        proxyReq.write(JSON.stringify(req.body));
+    }
+    proxyReq.end();
+});
 
 export default app;

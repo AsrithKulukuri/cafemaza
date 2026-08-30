@@ -242,86 +242,147 @@ export function Navbar() {
                             </div>
                         ) : null}
                     </div>
-                    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2">
-                        {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    <button
+                        type="button"
+                        onClick={() => setMobileMenuOpen((prev) => !prev)}
+                        aria-label="Toggle navigation menu"
+                        aria-expanded={mobileMenuOpen}
+                        className="touch-target lg:hidden p-2 text-[#F5F5F5] hover:text-[#CFAF63] transition rounded-full cursor-pointer"
+                    >
+                        {mobileMenuOpen ? <X size={24} className="text-[#CFAF63]" /> : <Menu size={24} />}
                     </button>
                 </div>
             </nav>
 
+            {/* Mobile Navigation Drawer */}
             <AnimatePresence>
                 {mobileMenuOpen && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="lg:hidden border-t border-[#CFAF63]/20 bg-[#0B0B0B]/95 backdrop-blur-xl"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="lg:hidden border-t border-[#CFAF63]/25 bg-[#0D0D0D]/98 shadow-2xl backdrop-blur-2xl max-h-[85vh] overflow-y-auto"
                     >
-                        <ul className="flex flex-col gap-0 px-4 py-3">
-                            {navLinks.map((item) => (
-                                <li key={item.href}>
-                                    <Link href={item.href} onClick={() => setMobileMenuOpen(false)} className="block py-3 text-sm text-[#F5F5F5]/88 border-b border-[#CFAF63]/10">
-                                        {item.label}
-                                    </Link>
-                                </li>
-                            ))}
-                            <li className="py-3 border-b border-[#CFAF63]/10">
-                                <button onClick={() => { setMobileMenuOpen(false); openBooking(); }} className="block text-sm text-[#F5F5F5]/88">
-                                    Book Table
-                                </button>
-                            </li>
-                            <li className="py-3 border-b border-[#CFAF63]/10">
-                                <button onClick={() => { setMobileMenuOpen(false); openCart(); }} className="block text-sm text-[#F5F5F5]/88">
-                                    Cart ({cartCount})
-                                </button>
-                            </li>
-                            {displayName && displayRole ? (
-                                <>
-                                    <li className="py-3 border-b border-[#CFAF63]/10 text-sm text-[#00D98E]">Hi, {displayName} ({formatRole(displayRole)})</li>
-                                    <li className="py-3 border-b border-[#CFAF63]/10">
-                                        <Link href="/my-orders" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#CFAF63]">
-                                            My Orders
+                        <div className="flex flex-col px-5 py-4 space-y-3 divide-y divide-[#2A2A2A]">
+                            {/* Main Navigation Links */}
+                            <ul className="flex flex-col space-y-1">
+                                {navLinks.map((item) => (
+                                    <li key={item.href}>
+                                        <Link
+                                            href={item.href}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="flex items-center justify-between py-2.5 text-sm font-medium text-[#F5F5F5] hover:text-[#CFAF63] transition"
+                                        >
+                                            <span>{item.label}</span>
                                         </Link>
                                     </li>
-                                    <li className="py-3 border-b border-[#CFAF63]/10">
-                                        <Link href="/profile" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#6CA3EA]">
-                                            Profile
-                                        </Link>
-                                    </li>
-                                    <li className="py-3 border-b border-[#CFAF63]/10">
+                                ))}
+                            </ul>
+
+                            {/* Quick Action Buttons */}
+                            <div className="pt-3 flex flex-col gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setMobileMenuOpen(false);
+                                        openBooking();
+                                    }}
+                                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#CFAF63] to-[#E5C378] py-2.5 text-xs font-bold text-[#111] shadow-lg shadow-[#CFAF63]/20 hover:opacity-90 transition cursor-pointer"
+                                >
+                                    Book a VIP Table
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setMobileMenuOpen(false);
+                                        openCart();
+                                    }}
+                                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-[#CFAF63]/30 bg-[#161616] py-2.5 text-xs font-semibold text-[#F5F5F5] hover:border-[#CFAF63] transition cursor-pointer"
+                                >
+                                    <ShoppingBag size={14} className="text-[#CFAF63]" />
+                                    View Cart ({cartCount})
+                                </button>
+                            </div>
+
+                            {/* Account Status / Login */}
+                            <div className="pt-3">
+                                {displayName && displayRole ? (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between px-1">
+                                            <span className="text-xs text-[#00D98E] font-semibold">
+                                                ● {displayName}
+                                            </span>
+                                            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#00D98E]/15 text-[#00D98E] border border-[#00D98E]/30">
+                                                {formatRole(displayRole)}
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 pt-1">
+                                            <Link
+                                                href="/my-orders"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                                className="block rounded-lg bg-[#161616] px-3 py-2 text-center text-xs font-medium text-[#CFAF63] border border-[#CFAF63]/20"
+                                            >
+                                                My Orders
+                                            </Link>
+                                            <Link
+                                                href="/profile"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                                className="block rounded-lg bg-[#161616] px-3 py-2 text-center text-xs font-medium text-[#6CA3EA] border border-[#6CA3EA]/20"
+                                            >
+                                                Profile
+                                            </Link>
+                                        </div>
                                         <button
+                                            type="button"
                                             onClick={() => {
                                                 void handleLogout();
                                                 setMobileMenuOpen(false);
                                             }}
-                                            className="block text-sm text-[#FF6A00]"
+                                            className="w-full mt-1 rounded-lg bg-rose-500/10 border border-rose-500/20 py-2 text-center text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"
                                         >
-                                            Logout
+                                            Log Out
                                         </button>
-                                    </li>
-                                </>
-                            ) : (
-                                <li className="py-3 border-b border-[#CFAF63]/10">
-                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#F5F5F5]/88">
-                                        Login
+                                    </div>
+                                ) : (
+                                    <Link
+                                        href="/login"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block w-full rounded-xl bg-linear-to-r from-[#CFAF63]/20 to-[#FF6A00]/20 border border-[#CFAF63]/30 py-2.5 text-center text-xs font-bold text-[#F5F5F5] hover:border-[#CFAF63] transition"
+                                    >
+                                        Customer Login
                                     </Link>
-                                </li>
-                            )}
-                            <li className="py-3">
-                                <Link href="/staff-login" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#F5F5F5]/88">
-                                    Staff
-                                </Link>
-                            </li>
-                            <li className="py-3">
-                                <Link href="/delivery-login" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#6CA3EA]">
-                                    Delivery
-                                </Link>
-                            </li>
-                            <li className="py-3">
-                                <Link href="/admin-login" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-[#FF6A00]">
-                                    Admin
-                                </Link>
-                            </li>
-                        </ul>
+                                )}
+                            </div>
+
+                            {/* Portals Section */}
+                            <div className="pt-3">
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-[#888] mb-2">Staff & Management Portals</p>
+                                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                                    <Link
+                                        href="/staff-login"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="rounded-lg bg-[#161616] border border-[#2A2A2A] py-2 text-[#F5F5F5] hover:border-[#CFAF63] transition"
+                                    >
+                                        Staff
+                                    </Link>
+                                    <Link
+                                        href="/delivery-login"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="rounded-lg bg-[#161616] border border-[#2A2A2A] py-2 text-[#6CA3EA] hover:border-[#6CA3EA] transition"
+                                    >
+                                        Delivery
+                                    </Link>
+                                    <Link
+                                        href="/admin-login"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="rounded-lg bg-[#161616] border border-[#2A2A2A] py-2 text-[#FF6A00] hover:border-[#FF6A00] transition"
+                                    >
+                                        Admin
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

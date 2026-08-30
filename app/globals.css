@@ -22,14 +22,49 @@ body {
   color: var(--soft-white);
   font-family: var(--font-body), sans-serif;
   overflow-x: hidden;
+  width: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
 }
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch-friendly min tap target */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Slim touch scrollbar for mobile horizontal scrollers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(207, 175, 99, 0.35);
+  border-radius: 4px;
 }
 
 .glass-card {

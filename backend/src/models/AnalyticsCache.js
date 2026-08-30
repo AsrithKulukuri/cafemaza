@@ -6,6 +6,8 @@ const AnalyticsCacheSchema = new mongoose.Schema(
         generatedAt: { type: Date, required: true },
         totalOrders: { type: Number, default: 0 },
         revenue: { type: Number, default: 0 },
+        totalOrdersToday: { type: Number, default: 0 },
+        revenueToday: { type: Number, default: 0 },
         activeOrders: { type: Number, default: 0 },
         reservations: { type: Number, default: 0 },
         screenings: { type: Number, default: 0 },

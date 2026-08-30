@@ -3,10 +3,27 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 import { User } from "../models/User.js";
+import { Customer } from "../models/Customer.js";
+import { MembershipCard } from "../models/MembershipCard.js";
 import { OtpSession } from "../models/OtpSession.js";
 import { generateToken } from "../utils/generateToken.js";
 import { auth } from "../middlewares/auth.js";
+import { permit } from "../middlewares/roles.js";
 import { logger, maskPhone } from "../utils/logger.js";
+
+function getPhoneVariants(phone) {
+    if (!phone) return [];
+    const digits = String(phone).replace(/\D/g, "");
+    if (!digits) return [];
+    const last10 = digits.slice(-10);
+    return [
+        phone,
+        last10,
+        `+91${last10}`,
+        `91${last10}`,
+        `0${last10}`,
+    ];
+}
 
 const router = express.Router();
 
@@ -340,7 +357,7 @@ router.post("/register", async (req, res, next) => {
     }
 });
 
-router.post("/register-staff", async (req, res, next) => {
+router.post("/register-staff", auth, permit("admin"), async (req, res, next) => {
     try {
         const { name, email, password, phone, role } = req.body;
 
@@ -659,6 +676,46 @@ router.post("/otp/verify", async (req, res, next) => {
 
 router.get("/profile", auth, async (req, res, next) => {
     try {
+        const userPhoneVariants = getPhoneVariants(req.user.phone);
+        const customer = await Customer.findOne({
+            $or: [
+                ...(userPhoneVariants.length > 0 ? [{ phone: { $in: userPhoneVariants } }] : []),
+                ...(req.user.email ? [{ email: req.user.email }] : []),
+            ],
+        }).populate("cardId");
+
+        let membership = null;
+        if (customer && customer.cardCode) {
+            const card = customer.cardId || (await MembershipCard.findOne({ cardCode: customer.cardCode }));
+            if (card) {
+                const limit = card.yearlyDiscountLimit || 3000;
+                const used = card.yearlyDiscountUsed || 0;
+                const assignedDate = card.assignedAt || card.createdAt || new Date();
+                const validDate = card.validUntil || new Date(new Date(assignedDate).setFullYear(new Date(assignedDate).getFullYear() + 1));
+
+                membership = {
+                    cardCode: customer.cardCode,
+                    cardType: customer.cardType,
+                    status: card.status,
+                    discountPercent: card.discountPercent,
+                    pointsBalance: customer.pointsBalance || 0,
+                    referralCode: customer.referralCode || "",
+                    referredByMasterCardCode: customer.referredByMasterCardCode || "",
+                    referralFirstVisitDiscountPercent: customer.referralFirstVisitDiscountPercent,
+                    referralFirstVisitUsed: customer.referralFirstVisitUsed,
+                    totalVisits: customer.totalVisits || 0,
+                    totalSpend: customer.totalSpend || 0,
+                    totalDiscountClaimed: customer.totalDiscountClaimed || 0,
+                    yearlyDiscountLimit: limit,
+                    yearlyDiscountUsed: used,
+                    remainingCredit: Math.max(0, limit - used),
+                    assignedAt: assignedDate,
+                    validUntil: validDate,
+                    currentYear: card.currentYear || new Date().getFullYear(),
+                };
+            }
+        }
+
         return res.json({
             user: {
                 id: req.user._id,
@@ -669,6 +726,7 @@ router.get("/profile", auth, async (req, res, next) => {
                 savedAddress: req.user.savedAddress,
                 savedLocation: req.user.savedLocation,
             },
+            membership,
         });
     } catch (error) {
         return next(error);

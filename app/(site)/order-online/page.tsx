@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ShoppingBag, Plus, Minus, Trash2, X } from "lucide-react";
 import { DishCard } from "@/components/ui/DishCard";
 import { menuCategories, type Dish } from "@/data/mockData";
+import { apiFetch } from "@/lib/api";
 
 type CartItem = Dish & { qty: number; key: string; selectedVariant?: { name: string; price: number } };
 
@@ -14,8 +15,47 @@ export default function OrderOnlinePage() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [cartOpen, setCartOpen] = useState(false);
     const [lastAdded, setLastAdded] = useState<string | null>(null);
+    const [dishes, setDishes] = useState<Dish[]>(() => menuCategories.flatMap((category) => category.items).slice(0, 24));
 
-    const allDishes = menuCategories.flatMap((category) => category.items).slice(0, 18);
+    useEffect(() => {
+        let active = true;
+        async function fetchDishes() {
+            try {
+                const items = await apiFetch<Array<{
+                    _id: string;
+                    name: string;
+                    price?: number;
+                    variants?: { name: string; price: number }[];
+                    image?: string;
+                    isVeg?: boolean;
+                    isBestSeller?: boolean;
+                    isPopular?: boolean;
+                    isSoldOut?: boolean;
+                    tags?: string[];
+                }>>("/api/menu", { cache: "no-store" });
+
+                if (Array.isArray(items) && items.length > 0 && active) {
+                    setDishes(items.map((item) => ({
+                        _id: item._id,
+                        name: item.name,
+                        price: item.price,
+                        variants: item.variants,
+                        image: item.image || "/images/soup.jpg",
+                        isVeg: item.isVeg,
+                        isBestSeller: item.isBestSeller ?? item.isPopular,
+                        isSoldOut: item.isSoldOut,
+                        tags: item.tags,
+                    })));
+                }
+            } catch {
+                // Keep fallback dishes
+            }
+        }
+        fetchDishes();
+        return () => { active = false; };
+    }, []);
+
+    const allDishes = dishes;
     const total = useMemo(() => cart.reduce((sum, item) => sum + ((item.selectedVariant?.price ?? item.price ?? 0) * item.qty), 0), [cart]);
 
     const addToCart = (dish: Dish & { selectedVariant?: { name: string; price: number } }) => {

@@ -64,6 +64,7 @@ export default function AdminLoginPage() {
                         value={adminEmail}
                         onChange={(e) => setAdminEmail(e.target.value)}
                         className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:border-[#CFAF63] focus:outline-none transition"
+                        suppressHydrationWarning
                     />
                     <input
                         type="password"
@@ -71,8 +72,13 @@ export default function AdminLoginPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:border-[#CFAF63] focus:outline-none transition"
+                        suppressHydrationWarning
                     />
-                    <button type="submit" className="luxury-button w-full rounded-full bg-gradient-to-r from-[#CFAF63] via-[#FFD78B] to-[#FF6A00] px-4 py-3 font-semibold text-[#111] hover:shadow-lg transition">
+                    <button
+                        type="submit"
+                        className="luxury-button w-full rounded-full bg-gradient-to-r from-[#CFAF63] via-[#FFD78B] to-[#FF6A00] px-4 py-3 font-semibold text-[#111] hover:shadow-lg transition"
+                        suppressHydrationWarning
+                    >
                         Access Admin Dashboard
                     </button>
                 </div>

@@ -1,17 +1,36 @@
 "use client";
 
-import { useState, useEffect, useRef, type ChangeEvent } from "react";
+import { useState, useEffect, useRef, useMemo, type ChangeEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogOut, BarChart3, ShoppingCart, UtensilsCrossed, Calendar, Plus, Trash2, Edit2, Monitor, Truck, User, TicketPercent } from "lucide-react";
+import { LogOut, BarChart3, ShoppingCart, UtensilsCrossed, Calendar, Plus, Trash2, Edit2, Monitor, Truck, User, TicketPercent, CreditCard, Scan, Users, Gift, Sliders } from "lucide-react";
 import { mockOrders, mockAnalytics, mockReservations, mockScreeningBookings, type ScreeningBooking } from "@/data/mockData";
 import { apiFetch } from "@/lib/api";
 import { clearAuthSession, getAuthToken, getAuthUser } from "@/lib/authToken";
 import { socket } from "@/lib/socket";
 import { StaffUsersPanel } from "@/components/admin/StaffUsersPanel";
+import { MembershipPosTerminal } from "@/components/admin/membership/MembershipPosTerminal";
+import { CardsManagerPanel } from "@/components/admin/membership/CardsManagerPanel";
+import { CustomersDirectoryPanel } from "@/components/admin/membership/CustomersDirectoryPanel";
+import { ReferralsPointsPanel } from "@/components/admin/membership/ReferralsPointsPanel";
+import { MembershipSettingsPanel } from "@/components/admin/membership/MembershipSettingsPanel";
 
-type TabType = "analytics" | "orders" | "menu" | "deliveryPartners" | "coupons" | "promotions" | "staffUsers" | "reservations" | "screenings";
+type TabType =
+    | "analytics"
+    | "orders"
+    | "menu"
+    | "deliveryPartners"
+    | "coupons"
+    | "promotions"
+    | "staffUsers"
+    | "reservations"
+    | "screenings"
+    | "membershipPos"
+    | "membershipCards"
+    | "membershipCustomers"
+    | "membershipReferrals"
+    | "membershipSettings";
 
 type AdminMenuItem = {
     _id: string;
@@ -254,13 +273,17 @@ export default function AdminDashboard() {
     );
     const [orderError, setOrderError] = useState("");
     const [dailyHistory, setDailyHistory] = useState<DailyHistoryItem[]>([]);
+    const [historyDaysFilter, setHistoryDaysFilter] = useState<7 | 30 | 90>(90);
+    const [showActiveDaysOnly, setShowActiveDaysOnly] = useState(false);
     const [screeningBookings, setScreeningBookings] = useState<ScreeningBooking[]>(mockScreeningBookings);
     const [reservations, setReservations] = useState(mockReservations);
     const [analytics, setAnalytics] = useState({
-        totalOrdersToday: mockAnalytics.totalOrdersToday,
-        revenueToday: mockAnalytics.revenueToday,
-        activeOrders: mockAnalytics.activeOrders,
-        reservationsToday: mockAnalytics.reservationsToday,
+        totalOrdersToday: 0,
+        revenueToday: 0,
+        totalOrdersAllTime: 0,
+        revenueAllTime: 0,
+        activeOrders: 0,
+        reservationsToday: 0,
     });
 
     const updateScreeningStatus = (id: string, status: ScreeningBooking["status"]) => {
@@ -283,7 +306,7 @@ export default function AdminDashboard() {
 
             try {
                 const [analyticsRes, ordersRes, menuRes, reservationsRes, screeningRes, deliveryPartnersRes, couponsRes, couponAnalyticsRes, promoBannersRes, notificationSettingsRes] = await Promise.all([
-                    apiFetch<{ totalOrders: number; revenue: number; activeOrders: number; reservations: number; dailyHistory?: DailyHistoryItem[] }>("/api/admin/analytics?days=90", { token }),
+                    apiFetch<{ totalOrders: number; revenue: number; totalOrdersToday?: number; revenueToday?: number; activeOrders: number; reservations: number; dailyHistory?: DailyHistoryItem[] }>("/api/admin/analytics?days=90", { token }),
                     apiFetch<Array<{ _id: string; totalAmount: number; status: string; createdAt: string; userId?: { name?: string }; items: Array<{ quantity: number; menuItemId?: { name?: string; price?: number } }> }>>("/api/orders?days=90", { token }),
                     apiFetch<AdminMenuItem[]>("/api/menu", { token, cache: "no-store" }),
                     apiFetch<typeof mockReservations>("/api/reservations", { token }),
@@ -296,10 +319,12 @@ export default function AdminDashboard() {
                 ]);
 
                 setAnalytics({
-                    totalOrdersToday: analyticsRes.totalOrders,
-                    revenueToday: analyticsRes.revenue,
-                    activeOrders: analyticsRes.activeOrders,
-                    reservationsToday: analyticsRes.reservations,
+                    totalOrdersToday: analyticsRes.totalOrdersToday ?? (analyticsRes.dailyHistory?.[0]?.orders ?? 0),
+                    revenueToday: analyticsRes.revenueToday ?? (analyticsRes.dailyHistory?.[0]?.revenue ?? 0),
+                    totalOrdersAllTime: analyticsRes.totalOrders || 0,
+                    revenueAllTime: analyticsRes.revenue || 0,
+                    activeOrders: analyticsRes.activeOrders || 0,
+                    reservationsToday: analyticsRes.reservations || 0,
                 });
                 setDailyHistory(analyticsRes.dailyHistory || []);
 
@@ -595,8 +620,12 @@ export default function AdminDashboard() {
         const formData = new FormData();
         formData.append("file", file);
 
+        const token = typeof window !== "undefined" ? window.localStorage.getItem("cm_token") : null;
         const response = await fetch("/api/menu/upload-image", {
             method: "POST",
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
             body: formData,
         });
 
@@ -944,6 +973,11 @@ export default function AdminDashboard() {
     if (!adminInfo) return null;
 
     const tabs = [
+        { id: "membershipPos", label: "POS Scanner & Billing", icon: Scan },
+        { id: "membershipCards", label: "200 Cards Hub", icon: CreditCard },
+        { id: "membershipCustomers", label: "Members Directory", icon: Users },
+        { id: "membershipReferrals", label: "Referrals & Points", icon: Gift },
+        { id: "membershipSettings", label: "Membership Settings", icon: Sliders },
         { id: "analytics", label: "Analytics", icon: BarChart3 },
         { id: "orders", label: "Orders", icon: ShoppingCart },
         { id: "menu", label: "Menu", icon: UtensilsCrossed },
@@ -956,42 +990,46 @@ export default function AdminDashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#0B0B0B] p-6">
+        <div className="min-h-screen bg-[#0B0B0B] p-3 sm:p-6">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                    <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Welcome,</p>
-                    <h1 className="font-[var(--font-heading)] text-4xl text-[#F5F5F5]">{adminInfo.name}</h1>
-                    <p className="text-sm text-[#999] mt-1">{adminInfo.email}</p>
+                    <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Welcome,</p>
+                    <h1 className="font-[var(--font-heading)] text-2xl sm:text-4xl text-[#F5F5F5]">{adminInfo.name}</h1>
+                    <p className="text-xs sm:text-sm text-[#999] mt-0.5">{adminInfo.email}</p>
                 </motion.div>
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] hover:bg-[#FF6A00]/30 transition"
+                    className="touch-target self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF6A00]/20 text-[#FF6A00] hover:bg-[#FF6A00]/30 transition text-xs sm:text-sm font-semibold cursor-pointer"
                 >
-                    <LogOut size={18} />
+                    <LogOut size={16} />
                     Logout
                 </button>
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                        <motion.button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id as TabType)}
-                            whileHover={{ scale: 1.05 }}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition ${activeTab === tab.id
-                                ? "bg-gradient-to-r from-[#CFAF63] to-[#FF6A00] text-[#111] font-semibold"
-                                : "border border-[#CFAF63]/25 text-[#F5F5F5] hover:border-[#CFAF63]"
-                                }`}
-                        >
-                            <Icon size={18} />
-                            {tab.label}
-                        </motion.button>
-                    );
-                })}
+            <div className="mb-6 sm:mb-8 overflow-x-auto pb-3 pt-1 custom-scrollbar">
+                <div className="flex items-center gap-2.5 min-w-max">
+                    {tabs.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <motion.button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as TabType)}
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.97 }}
+                                className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full whitespace-nowrap text-xs sm:text-sm font-semibold transition cursor-pointer ${isActive
+                                    ? "bg-gradient-to-r from-[#CFAF63] to-[#FF6A00] text-[#111] shadow-lg ring-1 ring-[#FF6A00]/40"
+                                    : "border border-[#CFAF63]/25 bg-black/40 text-[#F5F5F5] hover:border-[#CFAF63] hover:bg-[#CFAF63]/10"
+                                    }`}
+                            >
+                                <Icon size={16} className={isActive ? "text-[#111]" : "text-[#CFAF63]"} />
+                                <span>{tab.label}</span>
+                            </motion.button>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Content Sections */}
@@ -1008,24 +1046,24 @@ export default function AdminDashboard() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.05 }}
-                            className="glass-card rounded-2xl border border-[#CFAF63]/25 p-6"
+                            className="glass-card rounded-2xl border border-[#CFAF63]/25 p-4 sm:p-6"
                         >
                             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                                 <div>
-                                    <h3 className="font-(--font-heading) text-xl text-[#F5F5F5] mb-1">Order received notification number</h3>
-                                    <p className="text-sm text-[#999]">This number receives the WhatsApp alert when a new order is placed.</p>
+                                    <h3 className="font-(--font-heading) text-lg sm:text-xl text-[#F5F5F5] mb-1">Order received notification number</h3>
+                                    <p className="text-xs sm:text-sm text-[#999]">This number receives the WhatsApp alert when a new order is placed.</p>
                                 </div>
                                 <div className="flex flex-col gap-2 md:min-w-90 md:flex-row">
                                     <input
                                         value={notificationPhone}
                                         onChange={(e) => setNotificationPhone(e.target.value)}
                                         placeholder="+91XXXXXXXXXX"
-                                        className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none"
+                                        className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3 text-[#F5F5F5] placeholder-[#666] focus:outline-none font-mono text-sm"
                                     />
                                     <button
                                         onClick={() => void saveNotificationPhone()}
                                         disabled={notificationSaving}
-                                        className="rounded-xl bg-linear-to-r from-[#CFAF63] to-[#FF6A00] px-5 py-3 text-sm font-semibold text-[#111] disabled:opacity-60"
+                                        className="touch-target min-h-[44px] rounded-xl bg-linear-to-r from-[#CFAF63] to-[#FF6A00] px-5 py-3 text-sm font-semibold text-[#111] disabled:opacity-60 cursor-pointer"
                                     >
                                         {notificationSaving ? "Saving..." : "Save Number"}
                                     </button>
@@ -1039,69 +1077,196 @@ export default function AdminDashboard() {
                         </motion.div>
 
                         {/* Analytics Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                             {[
-                                { label: "Total Orders Today", value: analytics.totalOrdersToday, icon: "📊", color: "from-[#FF6A00]" },
-                                { label: "Revenue Today", value: `₹${analytics.revenueToday}`, icon: "💰", color: "from-[#CFAF63]" },
-                                { label: "Active Orders", value: analytics.activeOrders, icon: "🔄", color: "from-[#3B82F6]" },
-                                { label: "Reservations", value: analytics.reservationsToday, icon: "🗓️", color: "from-[#00D98E]" },
-                                { label: "Screening Bookings", value: screeningBookings.length, icon: "🎬", color: "from-[#8B5CF6]" },
+                                { 
+                                    label: "Orders Today", 
+                                    value: analytics.totalOrdersToday, 
+                                    subtext: `All-Time: ${analytics.totalOrdersAllTime}`, 
+                                    icon: "📊", 
+                                    color: "from-[#FF6A00]" 
+                                },
+                                { 
+                                    label: "Revenue Today", 
+                                    value: `₹${analytics.revenueToday.toLocaleString()}`, 
+                                    subtext: `All-Time: ₹${analytics.revenueAllTime.toLocaleString()}`, 
+                                    icon: "💰", 
+                                    color: "from-[#CFAF63]" 
+                                },
+                                { 
+                                    label: "Active Orders", 
+                                    value: analytics.activeOrders, 
+                                    subtext: "In Kitchen / Delivery", 
+                                    icon: "🔄", 
+                                    color: "from-[#3B82F6]" 
+                                },
+                                { 
+                                    label: "Reservations", 
+                                    value: reservations.length, 
+                                    subtext: "Table Bookings", 
+                                    icon: "🗓️", 
+                                    color: "from-[#00D98E]" 
+                                },
+                                { 
+                                    label: "Screenings", 
+                                    value: screeningBookings.length, 
+                                    subtext: "Private Cinema", 
+                                    icon: "🎬", 
+                                    color: "from-[#8B5CF6]" 
+                                },
                             ].map((card, idx) => (
                                 <motion.div
                                     key={idx}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.1 }}
-                                    className={`glass-card rounded-2xl border border-[#CFAF63]/25 p-6 bg-linear-to-br ${card.color}/5`}
+                                    className={`glass-card rounded-2xl border border-[#CFAF63]/25 p-5 bg-linear-to-br ${card.color}/5 flex flex-col justify-between`}
                                 >
                                     <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-[#999] text-sm">{card.label}</p>
-                                            <p className="text-3xl font-bold text-[#F5F5F5] mt-2">{card.value}</p>
-                                        </div>
-                                        <span className="text-4xl">{card.icon}</span>
+                                        <p className="text-[#999] text-xs sm:text-sm font-medium">{card.label}</p>
+                                        <span className="text-2xl sm:text-3xl">{card.icon}</span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <p className="text-2xl sm:text-3xl font-bold text-[#F5F5F5]">{card.value}</p>
+                                        <p className="text-[11px] text-[#CFAF63]/80 mt-1 font-mono">{card.subtext}</p>
                                     </div>
                                 </motion.div>
                             ))}
                         </div>
 
-                        {/* 90-Day History */}
+                        {/* Order & Revenue History */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                             className="glass-card rounded-2xl border border-[#CFAF63]/25 p-6"
                         >
-                            <div className="flex items-center justify-between gap-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
-                                    <h3 className="font-(--font-heading) text-xl text-[#F5F5F5] mb-1">90-Day Order History</h3>
-                                    <p className="text-sm text-[#999]">Daily order counts and revenue update from live orders.</p>
+                                    <h3 className="font-(--font-heading) text-xl text-[#F5F5F5] mb-1">Order & Revenue History</h3>
+                                    <p className="text-sm text-[#999]">Daily breakdown of online orders & in-store POS billing (newest first).</p>
                                 </div>
-                                <span className="rounded-full border border-[#CFAF63]/25 px-3 py-1 text-xs uppercase tracking-[0.14em] text-[#CFAF63]">
-                                    {dailyHistory.length} days
-                                </span>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <div className="flex items-center rounded-xl bg-[#151515] p-1 border border-[#CFAF63]/20 text-xs">
+                                        {([7, 30, 90] as const).map((days) => (
+                                            <button
+                                                key={days}
+                                                type="button"
+                                                onClick={() => setHistoryDaysFilter(days)}
+                                                className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
+                                                    historyDaysFilter === days
+                                                        ? "bg-[#CFAF63] text-[#111] font-semibold"
+                                                        : "text-[#999] hover:text-[#FFF]"
+                                                }`}
+                                            >
+                                                {days}D
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowActiveDaysOnly((prev) => !prev)}
+                                        className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition cursor-pointer ${
+                                            showActiveDaysOnly
+                                                ? "border-[#00D98E] bg-[#00D98E]/15 text-[#00D98E]"
+                                                : "border-[#CFAF63]/20 bg-[#151515] text-[#999] hover:text-[#FFF]"
+                                        }`}
+                                    >
+                                        {showActiveDaysOnly ? "✓ Active Days Only" : "Show All Days"}
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="mt-4 max-h-[420px] overflow-auto rounded-xl border border-[#CFAF63]/15">
-                                <table className="w-full text-sm">
-                                    <thead className="sticky top-0 bg-[#101010]">
-                                        <tr className="border-b border-[#2A2A2A]">
-                                            <th className="px-4 py-3 text-left font-semibold text-[#999]">Date</th>
-                                            <th className="px-4 py-3 text-left font-semibold text-[#999]">Orders</th>
-                                            <th className="px-4 py-3 text-right font-semibold text-[#999]">Revenue</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {dailyHistory.map((entry) => (
-                                            <tr key={entry.date} className="border-b border-[#1A1A1A] last:border-b-0">
-                                                <td className="px-4 py-3 text-[#F5F5F5]">{entry.date}</td>
-                                                <td className="px-4 py-3 text-[#CFAF63]">{entry.orders}</td>
-                                                <td className="px-4 py-3 text-right text-[#4FE0A6]">₹{entry.revenue}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            {(() => {
+                                let displayedItems = dailyHistory.slice(0, historyDaysFilter);
+                                if (showActiveDaysOnly) {
+                                    displayedItems = displayedItems.filter((item) => item.orders > 0 || item.revenue > 0);
+                                }
+                                const periodOrders = displayedItems.reduce((acc, curr) => acc + curr.orders, 0);
+                                const periodRevenue = displayedItems.reduce((acc, curr) => acc + curr.revenue, 0);
+                                const todayStr = new Date().toISOString().slice(0, 10);
+
+                                return (
+                                    <>
+                                        <div className="mt-4 max-h-[440px] overflow-auto rounded-xl border border-[#CFAF63]/15">
+                                            <table className="w-full text-sm">
+                                                <thead className="sticky top-0 bg-[#121212] z-10">
+                                                    <tr className="border-b border-[#2A2A2A]">
+                                                        <th className="px-4 py-3 text-left font-semibold text-[#999]">Date</th>
+                                                        <th className="px-4 py-3 text-left font-semibold text-[#999]">Orders</th>
+                                                        <th className="px-4 py-3 text-left font-semibold text-[#999]">Status</th>
+                                                        <th className="px-4 py-3 text-right font-semibold text-[#999]">Revenue</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {displayedItems.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={4} className="px-4 py-8 text-center text-[#777]">
+                                                                No orders recorded in this period.
+                                                            </td>
+                                                        </tr>
+                                                    ) : (
+                                                        displayedItems.map((entry) => {
+                                                            const isToday = entry.date === todayStr;
+                                                            const hasSales = entry.orders > 0 || entry.revenue > 0;
+
+                                                            return (
+                                                                <tr
+                                                                    key={entry.date}
+                                                                    className={`border-b border-[#1A1A1A] last:border-b-0 transition ${
+                                                                        isToday
+                                                                            ? "bg-[#CFAF63]/10"
+                                                                            : hasSales
+                                                                            ? "hover:bg-[#1A1A1A]/60"
+                                                                            : "opacity-60 hover:opacity-100"
+                                                                    }`}
+                                                                >
+                                                                    <td className="px-4 py-3 text-[#F5F5F5] font-mono flex items-center gap-2">
+                                                                        <span>{entry.date}</span>
+                                                                        {isToday && (
+                                                                            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#CFAF63] text-[#111] font-bold">
+                                                                                Today
+                                                                            </span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 font-semibold">
+                                                                        <span className={entry.orders > 0 ? "text-[#CFAF63]" : "text-[#777]"}>
+                                                                            {entry.orders} {entry.orders === 1 ? "order" : "orders"}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-4 py-3">
+                                                                        {hasSales ? (
+                                                                            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#00D98E]/15 text-[#00D98E] font-medium">
+                                                                                ● Active Sales
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-[11px] text-[#555]">No activity</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className={`px-4 py-3 text-right font-mono font-semibold ${hasSales ? "text-[#00D98E]" : "text-[#666]"}`}>
+                                                                        ₹{entry.revenue.toLocaleString()}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {/* Summary Bar */}
+                                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[#999] border-t border-[#2A2A2A] pt-3">
+                                            <span>
+                                                Showing {displayedItems.length} days ({displayedItems.filter((i) => i.orders > 0 || i.revenue > 0).length} active trading days)
+                                            </span>
+                                            <div className="flex items-center gap-4">
+                                                <span>Total Period Orders: <strong className="text-[#CFAF63]">{periodOrders}</strong></span>
+                                                <span>Total Period Revenue: <strong className="text-[#00D98E]">₹{periodRevenue.toLocaleString()}</strong></span>
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </motion.div>
                     </div>
                 )}
@@ -2093,6 +2258,21 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 )}
+
+                {/* MEMBERSHIP POS SCANNER & BILLING */}
+                {activeTab === "membershipPos" && <MembershipPosTerminal />}
+
+                {/* 200 CARDS HUB */}
+                {activeTab === "membershipCards" && <CardsManagerPanel />}
+
+                {/* MEMBERS DIRECTORY */}
+                {activeTab === "membershipCustomers" && <CustomersDirectoryPanel />}
+
+                {/* REFERRALS & POINTS ENGINE */}
+                {activeTab === "membershipReferrals" && <ReferralsPointsPanel />}
+
+                {/* MEMBERSHIP CONFIGURATION SETTINGS */}
+                {activeTab === "membershipSettings" && <MembershipSettingsPanel />}
             </motion.div>
         </div>
     );

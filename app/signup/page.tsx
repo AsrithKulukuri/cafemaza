@@ -201,13 +201,14 @@ export default function SignupPage() {
                     <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Join Us</p>
                     <h1 className="mt-2 font-(--font-heading) text-4xl text-[#F5F5F5]">Phone OTP Signup</h1>
 
-                    <form onSubmit={handleSendOtp} className="mt-6 space-y-4">
+                    <form onSubmit={handleSendOtp} className="mt-6 space-y-4" suppressHydrationWarning>
                         <input
                             type="text"
                             placeholder="Full Name"
                             value={fullName}
                             onChange={(event) => setFullName(event.target.value)}
                             className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                            suppressHydrationWarning
                         />
                         <input
                             type="email"
@@ -215,6 +216,7 @@ export default function SignupPage() {
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
                             className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                            suppressHydrationWarning
                         />
                         <input
                             type="tel"
@@ -222,29 +224,33 @@ export default function SignupPage() {
                             value={phone}
                             onChange={(event) => setPhone(event.target.value)}
                             className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                            suppressHydrationWarning
                         />
                         <button
                             type="submit"
                             disabled={busy}
                             className="w-full rounded-full bg-linear-to-r from-[#CFAF63] to-[#FF6A00] px-4 py-3 font-semibold text-[#111] disabled:opacity-70"
+                            suppressHydrationWarning
                         >
                             {busy ? "Please wait..." : otpSent ? "Send OTP Again" : "Send OTP"}
                         </button>
                     </form>
 
                     {otpSent && (
-                        <form onSubmit={handleVerifyOtp} className="mt-4 space-y-4">
+                        <form onSubmit={handleVerifyOtp} className="mt-4 space-y-4" suppressHydrationWarning>
                             <input
                                 type="text"
                                 placeholder="Enter OTP"
                                 value={otpCode}
                                 onChange={(event) => setOtpCode(event.target.value)}
                                 className="w-full rounded-xl border border-[#CFAF63]/25 bg-[#121212] px-4 py-3"
+                                suppressHydrationWarning
                             />
                             <button
                                 type="submit"
                                 disabled={busy}
                                 className="w-full rounded-full border border-[#CFAF63]/40 px-4 py-3 font-semibold text-[#F5F5F5] disabled:opacity-70"
+                                suppressHydrationWarning
                             >
                                 {busy ? "Verifying..." : "Verify OTP & Create Session"}
                             </button>
@@ -253,6 +259,7 @@ export default function SignupPage() {
                                 onClick={handleResendOtp}
                                 disabled={busy || resendIn > 0}
                                 className="w-full rounded-full border border-[#CFAF63]/20 px-4 py-3 text-sm font-semibold text-[#F5F5F5]/90 disabled:opacity-60"
+                                suppressHydrationWarning
                             >
                                 {resendIn > 0 ? `Resend OTP in ${resendIn}s` : "Resend OTP"}
                             </button>

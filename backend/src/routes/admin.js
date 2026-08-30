@@ -161,98 +161,13 @@ function buildUtcDateKey(date) {
     return date.toISOString().slice(0, 10);
 }
 
-function buildDailyHistory(startDate, days, aggregateRows) {
-    const historyMap = new Map(
-        aggregateRows.map((row) => [row._id, { orders: row.orders || 0, revenue: row.revenue || 0 }])
-    );
-
-    const dailyHistory = [];
-    const current = new Date(startDate);
-
-    for (let index = 0; index < days; index += 1) {
-        const key = buildUtcDateKey(current);
-        const summary = historyMap.get(key) || { orders: 0, revenue: 0 };
-
-        dailyHistory.push({
-            date: key,
-            orders: summary.orders,
-            revenue: summary.revenue,
-        });
-
-        current.setUTCDate(current.getUTCDate() + 1);
-    }
-
-    return dailyHistory;
-}
-
 router.get("/analytics", auth, permit("admin"), async (req, res, next) => {
     try {
         const historyDays = clampHistoryDays(req.query.days, 90);
+        const { computeAndCacheAnalytics } = await import("../jobs/computeAnalytics.js");
+        const analytics = await computeAndCacheAnalytics(historyDays);
 
-        // Try returning cached analytics if present and recent
-        try {
-            const { AnalyticsCache } = await import("../models/AnalyticsCache.js");
-            const cached = await AnalyticsCache.findOne({ days: historyDays }).lean();
-            if (cached && cached.generatedAt) {
-                const generated = new Date(cached.generatedAt);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                if (generated >= today) {
-                    return res.json({
-                        totalOrders: cached.totalOrders,
-                        revenue: cached.revenue,
-                        activeOrders: cached.activeOrders,
-                        reservations: cached.reservations,
-                        screenings: cached.screenings,
-                        historyDays: cached.days,
-                        historyStart: null,
-                        dailyHistory: cached.dailyHistory || [],
-                    });
-                }
-            }
-        } catch (cacheErr) {
-            // ignore cache errors and fall back to live compute
-        }
-
-        // Fallback: compute live (same logic as before)
-        const historyStart = new Date();
-        historyStart.setUTCDate(historyStart.getUTCDate() - (historyDays - 1));
-        historyStart.setUTCHours(0, 0, 0, 0);
-
-        const totalOrders = await Order.countDocuments();
-        const activeOrders = await Order.countDocuments({ status: { $in: ["placed", "preparing", "ready", "out_for_delivery"] } });
-        const revenueData = await Order.aggregate([{ $group: { _id: null, revenue: { $sum: "$totalAmount" } } }]);
-        const reservations = await Reservation.countDocuments();
-        const screenings = await ScreeningBooking.countDocuments();
-        const dailyHistoryRows = await Order.aggregate([
-            { $match: { createdAt: { $gte: historyStart } } },
-            {
-                $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: "UTC" } },
-                    orders: { $sum: 1 },
-                    revenue: { $sum: "$totalAmount" },
-                },
-            },
-            { $sort: { _id: 1 } },
-        ]);
-
-        const dailyHistory = buildDailyHistory(historyStart, historyDays, dailyHistoryRows);
-
-        // store to cache asynchronously
-        import("../jobs/computeAnalytics.js")
-            .then((mod) => mod.computeAndCacheAnalytics(historyDays).catch(() => { }))
-            .catch(() => { });
-
-        return res.json({
-            totalOrders,
-            revenue: revenueData[0]?.revenue ?? 0,
-            activeOrders,
-            reservations,
-            screenings,
-            historyDays,
-            historyStart,
-            dailyHistory,
-        });
+        return res.json(analytics);
     } catch (error) {
         return next(error);
     }

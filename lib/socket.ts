@@ -14,4 +14,8 @@ export const socket = io(socketBaseUrl, {
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
     timeout: 10000,
+    auth: (cb) => {
+        const token = typeof window !== "undefined" ? window.localStorage.getItem("cm_token") : null;
+        cb({ token });
+    },
 });
