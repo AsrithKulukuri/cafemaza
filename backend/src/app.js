@@ -22,6 +22,7 @@ import {
     orderLimiter,
     membershipLimiter,
 } from "./middlewares/rateLimiter.js";
+import { isAllowedOrigin } from "./utils/corsOrigins.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -37,37 +38,20 @@ app.use(
     })
 );
 
-// 2. Strict CORS
-const allowedOrigins = String(process.env.FRONTEND_URL || "http://localhost:3000")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
+// 2. CORS Handling
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow server-to-server or non-browser tools (e.g. mobile apps / curl / SSR)
-            if (!origin) return callback(null, true);
-
-            if (allowedOrigins.includes(origin)) {
+            if (isAllowedOrigin(origin)) {
                 return callback(null, true);
             }
 
-            // In development only, allow localhost and dev tools
-            if (!isProduction) {
-                if (
-                    origin.startsWith("http://localhost:") ||
-                    origin.startsWith("http://127.0.0.1:") ||
-                    origin.endsWith(".ngrok-free.app") ||
-                    origin.endsWith(".ngrok-free.dev")
-                ) {
-                    return callback(null, true);
-                }
-            }
-
-            return callback(new Error("CORS policy violation: Origin not allowed."));
+            console.warn(`[CORS Blocked] Unauthorized origin attempted access: ${origin}`);
+            return callback(new Error(`CORS policy violation: Origin ${origin} not allowed.`));
         },
         credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
     })
 );
 

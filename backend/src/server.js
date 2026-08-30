@@ -10,6 +10,7 @@ import { logger, maskPhone } from "./utils/logger.js";
 import { scheduleDailyAnalytics } from "./jobs/computeAnalytics.js";
 import { User } from "./models/User.js";
 import { seedMembershipCards } from "../scripts/seed-membership-cards.js";
+import { isAllowedOrigin } from "./utils/corsOrigins.js";
 
 dotenv.config({ override: true });
 
@@ -18,38 +19,15 @@ const configuredPort = Number(process.env.PORT || 5000);
 const enablePortFallback = String(process.env.PORT_AUTO_FALLBACK || "false").toLowerCase() === "true";
 const server = http.createServer(app);
 
-const configuredOrigins = String(process.env.FRONTEND_URL || "http://localhost:3000")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-
 const io = new Server(server, {
     cors: {
         origin: (origin, callback) => {
-            if (!origin) {
-                callback(null, true);
-                return;
+            if (isAllowedOrigin(origin)) {
+                return callback(null, true);
             }
 
-            if (configuredOrigins.includes(origin)) {
-                callback(null, true);
-                return;
-            }
-
-            // In development only, allow localhost and dev tunneling
-            if (!isProduction) {
-                if (
-                    origin.startsWith("http://localhost:") ||
-                    origin.startsWith("http://127.0.0.1:") ||
-                    origin.endsWith(".ngrok-free.app") ||
-                    origin.endsWith(".ngrok-free.dev")
-                ) {
-                    callback(null, true);
-                    return;
-                }
-            }
-
-            callback(new Error("Socket CORS: Not allowed"));
+            console.warn(`[Socket CORS Blocked] Origin: ${origin}`);
+            return callback(new Error(`Socket CORS: Origin ${origin} not allowed`));
         },
         methods: ["GET", "POST"],
         credentials: true,
