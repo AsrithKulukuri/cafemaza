@@ -492,16 +492,23 @@ export default function HomePage() {
             <SectionReveal className="mx-auto grid max-w-6xl gap-10 px-6 md:grid-cols-2 md:px-10">
                 <div>
                     <p className="text-sm uppercase tracking-[0.2em] text-[#CFAF63]">Our Story</p>
-                    <h2 className="mt-3 font-[var(--font-heading)] text-4xl text-[#F5F5F5]">A Luxury Culinary Destination</h2>
+                    <h2 className="mt-3 font-[var(--font-heading)] text-4xl text-[#F5F5F5]">A Luxury Culinary Destination in Khammam</h2>
                     <GoldDivider className="max-w-md" />
                     <p className="mt-4 leading-relaxed text-[#F5F5F5]/75">
-                        Cafe Maza is a premium dining destination offering live grill experiences, authentic Indian cuisine and
-                        signature biryanis. Every table is treated to cinematic ambiance, handcrafted spice blends, and warm family
-                        hospitality that turns dinners into memories.
+                        CafeMaza is a premier family restaurant and live grill destination located at 66RG+852, V.Venkatayapalem, Telangana 507318.
+                        We proudly serve customers across V.Venkatayapalem, Raghunadhpalem, and Khammam with authentic dum biryani, sizzling table-side live grills,
+                        tandoori platters, refreshing mocktails, and swift online food delivery.
                     </p>
-                    <div className="mt-6">
-                        <LuxuryButton href="/contact" className="px-6 py-3">
-                            Reserve Your Table
+                    <p className="mt-3 leading-relaxed text-[#F5F5F5]/75">
+                        Whether you are planning a family dinner, celebrating birthdays in our private screening room, or ordering food online to your doorstep in Khammam,
+                        CafeMaza delivers unforgettable hospitality and rich culinary flavor.
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-4">
+                        <LuxuryButton href="/reserve-table" className="px-6 py-3">
+                            Reserve a Table
+                        </LuxuryButton>
+                        <LuxuryButton href="/order-online" className="px-6 py-3 bg-gradient-to-r from-[#CFAF63]/80 to-[#CFAF63]">
+                            Order Online
                         </LuxuryButton>
                     </div>
                 </div>
@@ -509,8 +516,8 @@ export default function HomePage() {
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(207,175,99,0.24),transparent_45%),radial-gradient(circle_at_70%_80%,rgba(255,106,0,0.35),transparent_56%),#181818]" />
                     <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.04),transparent_60%)]" />
                     <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-[#CFAF63]/25 bg-black/40 p-5 backdrop-blur-md">
-                        <p className="font-[var(--font-heading)] text-2xl text-[#F5F5F5]">🔥 Luxury Family Dining</p>
-                        <p className="mt-2 text-sm text-[#F5F5F5]/70">Live counters, handcrafted service, and unforgettable evenings.</p>
+                        <p className="font-[var(--font-heading)] text-2xl text-[#F5F5F5]">🔥 Luxury Family Dining • Khammam</p>
+                        <p className="mt-2 text-sm text-[#F5F5F5]/70">Live counters, handcrafted service, and unforgettable evenings in V.Venkatayapalem.</p>
                     </div>
                 </div>
             </SectionReveal>

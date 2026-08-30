@@ -99,10 +99,11 @@ export function HeroSection() {
                 className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-center justify-center px-6 text-center"
             >
                 <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="mb-5 rounded-full border border-[#D4AF37]/20 bg-[#111111]/55 px-4 py-2 text-xs tracking-[0.24em] text-[#D4AF37] backdrop-blur-md">
-                    {greeting} 🍷
+                    {greeting} • CafeMaza Khammam
                 </motion.p>
 
                 <AnimatedHeading
+                    as="h1"
                     lines={["Where Fire", "Meets Flavor"]}
                     className="max-w-4xl font-(--font-heading) text-5xl leading-[1.15] tracking-[0.04em] md:text-7xl shimmer-text"
                 />
@@ -113,7 +114,7 @@ export function HeroSection() {
                     transition={{ duration: 0.95, delay: 0.2, ease: "easeOut" }}
                     className="mt-6 max-w-2xl text-base tracking-[0.08em] text-[#F5F5F5]/85 md:text-lg leading-relaxed"
                 >
-                    An immersive dining experience crafted over open flames
+                    An immersive live grill &amp; authentic biryani dining experience in V.Venkatayapalem, Khammam
                 </motion.p>
 
                 <div className="relative mt-12 flex flex-col items-center gap-5 sm:flex-row sm:justify-center">

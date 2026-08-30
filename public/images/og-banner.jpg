@@ -49,19 +49,19 @@
 
   <!-- Left: text content -->
   <!-- Eyebrow -->
-  <text x="80" y="200" font-family="Georgia, serif" font-size="22" fill="#CFAF63" letter-spacing="8" text-anchor="start" font-weight="400">HYDERABAD • EST. 2020</text>
+  <text x="80" y="200" font-family="Georgia, serif" font-size="22" fill="#CFAF63" letter-spacing="8" text-anchor="start" font-weight="400">KHAMMAM • TELANGANA 507318</text>
 
   <!-- Main title -->
-  <text x="80" y="310" font-family="Georgia, 'Times New Roman', serif" font-size="96" fill="#F5F5F5" font-weight="700" text-anchor="start">Café Maza</text>
+  <text x="80" y="310" font-family="Georgia, 'Times New Roman', serif" font-size="96" fill="#F5F5F5" font-weight="700" text-anchor="start">CafeMaza</text>
 
   <!-- Gold divider line -->
   <rect x="80" y="330" width="380" height="3" rx="2" fill="url(#goldGrad)"/>
 
   <!-- Tagline -->
-  <text x="80" y="390" font-family="Arial, sans-serif" font-size="28" fill="#F5F5F5" fill-opacity="0.7" text-anchor="start">Ultra-Premium Live Grill Restaurant</text>
+  <text x="80" y="390" font-family="Arial, sans-serif" font-size="28" fill="#F5F5F5" fill-opacity="0.7" text-anchor="start">Family Restaurant, Cafe &amp; Live Grill</text>
 
   <!-- Sub-features -->
-  <text x="80" y="450" font-family="Arial, sans-serif" font-size="21" fill="#CFAF63" fill-opacity="0.85" letter-spacing="2">Live Grill  •  Tandoori  •  Dum Biryani  •  Private Screening</text>
+  <text x="80" y="450" font-family="Arial, sans-serif" font-size="21" fill="#CFAF63" fill-opacity="0.85" letter-spacing="2">Biryani  •  Live Grill  •  Food Delivery  •  Private Screening</text>
 
   <!-- Bottom URL pill -->
   <rect x="80" y="510" width="280" height="44" rx="22" fill="#CFAF63" fill-opacity="0.12" stroke="#CFAF63" stroke-width="1" stroke-opacity="0.4"/>

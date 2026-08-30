@@ -328,7 +328,7 @@ export function MembershipPosTerminal() {
                     const target = walkIn.cardCode || walkIn.customerPhone;
                     if (target) {
                         setSearchQuery(target);
-                        handleLookup(target, false);
+                        handleLookup(target);
                     }
                 }}
             />

@@ -1,7 +1,7 @@
 {
-    "name": "Café Maza",
-    "short_name": "Café Maza",
-    "description": "Ultra-Premium Live Grill Restaurant — Hyderabad",
+    "name": "CafeMaza",
+    "short_name": "CafeMaza",
+    "description": "Live Grill Restaurant, Cafe & Food Delivery in Khammam, Telangana",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0B0B0B",

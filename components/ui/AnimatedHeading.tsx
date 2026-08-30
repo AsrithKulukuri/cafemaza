@@ -5,13 +5,16 @@ import { motion } from "framer-motion";
 type AnimatedHeadingProps = {
     lines: string[];
     className?: string;
+    as?: "h1" | "h2" | "h3" | "div";
 };
 
-export function AnimatedHeading({ lines, className = "" }: AnimatedHeadingProps) {
+export function AnimatedHeading({ lines, className = "", as = "h1" }: AnimatedHeadingProps) {
+    const Tag = as;
+
     return (
-        <div className={className}>
+        <Tag className={className}>
             {lines.map((line, lineIndex) => (
-                <div key={lineIndex} className="block overflow-hidden">
+                <span key={lineIndex} className="block overflow-hidden">
                     {line.split("").map((character, index) => (
                         <motion.span
                             key={`${lineIndex}-${index}-${character}`}
@@ -23,8 +26,8 @@ export function AnimatedHeading({ lines, className = "" }: AnimatedHeadingProps)
                             {character === " " ? "\u00A0" : character}
                         </motion.span>
                     ))}
-                </div>
+                </span>
             ))}
-        </div>
+        </Tag>
     );
 }
