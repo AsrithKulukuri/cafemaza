@@ -1,4 +1,4 @@
-﻿export type DishVariant = {
+export type DishVariant = {
     name: string;
     price: number;
 };
@@ -184,49 +184,7 @@ export type ScreeningBooking = {
     createdAt: Date;
 };
 
-export const mockScreeningBookings: ScreeningBooking[] = [
-    {
-        id: "sc1",
-        name: "Arjun Mehta",
-        phone: "9876543001",
-        email: "arjun@example.com",
-        date: "2026-03-20",
-        time: "19:00",
-        guests: 4,
-        occasion: "Birthday",
-        contentType: "Movie",
-        specialRequest: "Bollywood thriller please",
-        status: "confirmed",
-        createdAt: new Date(),
-    },
-    {
-        id: "sc2",
-        name: "Priya Nair",
-        phone: "9876543002",
-        email: "priya@example.com",
-        date: "2026-03-21",
-        time: "20:30",
-        guests: 2,
-        occasion: "Anniversary",
-        contentType: "Sports Match",
-        status: "pending",
-        createdAt: new Date(),
-    },
-    {
-        id: "sc3",
-        name: "Rahul Verma",
-        phone: "9876543003",
-        email: "rahul@example.com",
-        date: "2026-03-22",
-        time: "18:00",
-        guests: 3,
-        occasion: "Casual",
-        contentType: "Custom Content",
-        specialRequest: "IPL highlights",
-        status: "pending",
-        createdAt: new Date(),
-    },
-];
+export const mockScreeningBookings: ScreeningBooking[] = [];
 
 // ============== MULTI-PORTAL MOCK DATA ==============
 
@@ -278,63 +236,27 @@ export type Delivery = {
 };
 
 // Mock Orders
-export const mockOrders: Order[] = [
-    { id: "1", orderNumber: 1001, customerName: "Rajesh Kumar", customerPhone: "9876543210", items: [{ name: "Butter Chicken", quantity: 2, price: 289 }, { name: "Tandoori Chicken", quantity: 1, price: 250 }], status: "new", total: 828, orderType: "dine-in", createdAt: new Date(), tableNumber: 5 },
-    { id: "2", orderNumber: 1002, customerName: "Priya Singh", customerPhone: "9876543211", items: [{ name: "Paneer Tikka", quantity: 1, price: 220 }], status: "preparing", total: 220, orderType: "takeaway", createdAt: new Date() },
-    { id: "3", orderNumber: 1003, customerName: "Amit Patel", customerPhone: "9876543212", items: [{ name: "Lamb Biryani", quantity: 3, price: 280 }], status: "preparing", total: 840, orderType: "delivery", createdAt: new Date(), deliveryAddress: "123 Main Street" },
-    { id: "4", orderNumber: 1004, customerName: "Neha Sharma", customerPhone: "9876543213", items: [{ name: "Chicken Dum Biryani", quantity: 2, price: 250 }], status: "ready", total: 500, orderType: "dine-in", createdAt: new Date(), tableNumber: 8 },
-    { id: "5", orderNumber: 1005, customerName: "Vikram Singh", customerPhone: "9876543214", items: [{ name: "Rogan Josh", quantity: 1, price: 360 }, { name: "Naan", quantity: 2, price: 40 }], status: "ready", total: 440, orderType: "takeaway", createdAt: new Date() },
-    { id: "6", orderNumber: 1006, customerName: "Ananya Verma", customerPhone: "9876543215", items: [{ name: "Chilli Chicken", quantity: 1, price: 260 }], status: "completed", total: 260, orderType: "delivery", createdAt: new Date(), deliveryAddress: "456 Oak Avenue" },
-];
+export const mockOrders: Order[] = [];
 
 // Mock Reservations
-export const mockReservations: Reservation[] = [
-    { id: "r1", name: "Rohit Gupta", phone: "9876543220", guests: 4, date: "2024-01-20", time: "19:00", tableNumber: 1, status: "confirmed" },
-    { id: "r2", name: "Sakshi Desai", phone: "9876543221", guests: 2, date: "2024-01-20", time: "19:30", tableNumber: 3, status: "confirmed" },
-    { id: "r3", name: "Harpreet Singh", phone: "9876543222", guests: 6, date: "2024-01-20", time: "20:00", tableNumber: 7, status: "confirmed" },
-];
+export const mockReservations: Reservation[] = [];
 
 // Mock Staff
-export const mockStaff: StaffMember[] = [
-    { id: "s1", staffId: "CHEF001", name: "Chef Vikram", role: "chef", shift: "evening" },
-    { id: "s2", staffId: "CHEF002", name: "Chef Arjun", role: "chef", shift: "evening" },
-    { id: "s3", staffId: "COUNTER001", name: "Ravi", role: "counter", shift: "evening" },
-    { id: "s4", staffId: "MGR001", name: "Manager Suresh", role: "manager", shift: "evening" },
-];
+export const mockStaff: StaffMember[] = [];
 
 // Mock Deliveries
-export const mockDeliveries: Delivery[] = [
-    { id: "d1", orderId: "3", deliveryId: "DEL001", customerName: "Amit Patel", customerPhone: "9876543212", pickupAddress: "CafÃ© Maza, Food Court", deliveryAddress: "123 Main Street, Apt 5B", items: ["Lamb Biryani x3"], status: "picked-up", assignedTo: "Delivery Partner 1", createdAt: new Date() },
-    { id: "d2", orderId: "6", deliveryId: "DEL002", customerName: "Ananya Verma", customerPhone: "9876543215", pickupAddress: "CafÃ© Maza, Food Court", deliveryAddress: "456 Oak Avenue, Suite 200", items: ["Chilli Chicken x1"], status: "delivered", assignedTo: "Delivery Partner 2", createdAt: new Date() },
-];
+export const mockDeliveries: Delivery[] = [];
 
 // Mock Analytics Data
 export const mockAnalytics = {
-    totalOrdersToday: 48,
-    revenueToday: 15240,
-    activeOrders: 6,
-    reservationsToday: 12,
-    ordersPerHour: [
-        { time: "12 PM", orders: 4 },
-        { time: "1 PM", orders: 7 },
-        { time: "2 PM", orders: 5 },
-        { time: "6 PM", orders: 3 },
-        { time: "7 PM", orders: 8 },
-        { time: "8 PM", orders: 9 },
-        { time: "9 PM", orders: 5 },
-        { time: "10 PM", orders: 2 },
-    ],
-    revenueChart: [
-        { time: "12 PM", revenue: 1200 },
-        { time: "1 PM", revenue: 2100 },
-        { time: "2 PM", revenue: 1500 },
-        { time: "6 PM", revenue: 900 },
-        { time: "7 PM", revenue: 2400 },
-        { time: "8 PM", revenue: 2700 },
-        { time: "9 PM", revenue: 1500 },
-        { time: "10 PM", revenue: 600 },
-    ],
+    totalOrdersToday: 0,
+    revenueToday: 0,
+    activeOrders: 0,
+    reservationsToday: 0,
+    ordersPerHour: [],
+    revenueChart: [],
 };
+
 
 
 

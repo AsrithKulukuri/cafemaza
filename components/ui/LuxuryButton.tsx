@@ -28,16 +28,36 @@ export function LuxuryButton({ href, children, className = "", onClick, type = "
 
     if (href) {
         return (
-            <motion.div ref={buttonRef as React.RefObject<HTMLDivElement>} whileHover={{ x: offset.x, y: offset.y - 2 }} whileTap={{ scale: 0.98 }} onMouseMove={handleMove} onMouseLeave={resetOffset} data-cursor="interactive">
-                <Link href={href} className={classes}>
+            <Link
+                href={href}
+                className={`inline-block touch-manipulation cursor-pointer ${className.includes("w-full") ? "w-full" : ""}`}
+            >
+                <motion.span
+                    ref={buttonRef as React.RefObject<HTMLSpanElement>}
+                    whileHover={{ x: offset.x, y: offset.y - 2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onMouseMove={handleMove}
+                    onMouseLeave={resetOffset}
+                    data-cursor="interactive"
+                    className={classes}
+                >
                     {children}
-                </Link>
-            </motion.div>
+                </motion.span>
+            </Link>
         );
     }
 
     return (
-        <motion.button whileHover={{ x: offset.x, y: offset.y - 2 }} whileTap={{ scale: 0.98 }} className={classes} onClick={onClick} type={type} onMouseMove={handleMove} onMouseLeave={resetOffset} data-cursor="interactive">
+        <motion.button
+            whileHover={{ x: offset.x, y: offset.y - 2 }}
+            whileTap={{ scale: 0.98 }}
+            className={`touch-manipulation cursor-pointer ${classes}`}
+            onClick={onClick}
+            type={type}
+            onMouseMove={handleMove}
+            onMouseLeave={resetOffset}
+            data-cursor="interactive"
+        >
             {children}
         </motion.button>
     );

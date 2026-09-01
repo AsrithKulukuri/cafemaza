@@ -282,6 +282,14 @@ export function Navbar() {
 
                             {/* Quick Action Buttons */}
                             <div className="pt-3 flex flex-col gap-2">
+                                <Link
+                                    href="/order-online"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#FF6A00] to-[#CFAF63] py-2.5 text-xs font-bold text-[#111] shadow-lg shadow-[#FF6A00]/20 hover:opacity-90 transition cursor-pointer"
+                                >
+                                    <ShoppingBag size={14} />
+                                    Order Online
+                                </Link>
                                 <button
                                     type="button"
                                     onClick={() => {

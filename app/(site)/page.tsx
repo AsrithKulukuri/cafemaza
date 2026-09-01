@@ -219,21 +219,26 @@ export default function HomePage() {
                 <GoldDivider className="max-w-md" />
                 <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                     {CTA_ACTIONS.map((action, idx) => (
-                        <motion.a
+                        <Link
                             key={action.href}
                             href={action.href}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, amount: 0.2 }}
-                            transition={{ duration: 0.45, delay: idx * 0.08 }}
-                            whileHover={{ y: -6, scale: 1.015 }}
-                            className="glass-card smart-card group rounded-2xl border border-[#CFAF63]/20 p-5 sm:p-6 hover:shadow-[0_0_40px_rgba(255,106,0,0.35)]"
+                            className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CFAF63] rounded-2xl touch-manipulation cursor-pointer"
                         >
-                            <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">{action.icon}</div>
-                            <h3 className="font-[var(--font-heading)] text-xl sm:text-2xl text-[#F5F5F5]">{action.title}</h3>
-                            <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-[#F5F5F5]/70">{action.subtitle}</p>
-                            <span className="mt-3 sm:mt-4 inline-block text-xs text-[#FF6A00] font-semibold">Explore →</span>
-                        </motion.a>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.2 }}
+                                transition={{ duration: 0.45, delay: idx * 0.08 }}
+                                whileHover={{ y: -6, scale: 1.015 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="glass-card smart-card group h-full rounded-2xl border border-[#CFAF63]/20 p-5 sm:p-6 hover:shadow-[0_0_40px_rgba(255,106,0,0.35)] active:border-[#CFAF63]/60 transition-colors"
+                            >
+                                <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">{action.icon}</div>
+                                <h3 className="font-[var(--font-heading)] text-xl sm:text-2xl text-[#F5F5F5]">{action.title}</h3>
+                                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-[#F5F5F5]/70">{action.subtitle}</p>
+                                <span className="mt-3 sm:mt-4 inline-block text-xs text-[#FF6A00] font-semibold group-hover:translate-x-1 transition-transform">Explore →</span>
+                            </motion.div>
+                        </Link>
                     ))}
                 </div>
             </SectionReveal>

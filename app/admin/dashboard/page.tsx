@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { LogOut, BarChart3, ShoppingCart, UtensilsCrossed, Calendar, Plus, Trash2, Edit2, Monitor, Truck, User, TicketPercent, CreditCard, Scan, Users, Gift, Sliders } from "lucide-react";
-import { mockOrders, mockAnalytics, mockReservations, mockScreeningBookings, type ScreeningBooking } from "@/data/mockData";
+import { type ScreeningBooking } from "@/data/mockData";
 import { apiFetch } from "@/lib/api";
 import { clearAuthSession, getAuthToken, getAuthUser } from "@/lib/authToken";
 import { socket } from "@/lib/socket";
@@ -263,20 +263,13 @@ export default function AdminDashboard() {
         vehicleNumber: "",
         licenseNumber: "",
     });
-    const [orders, setOrders] = useState<AdminOrder[]>(() =>
-        mockOrders.map((order, index) => ({
-            ...order,
-            id: String(order.id),
-            status: normalizeOrderStatus(order.status),
-            createdAt: new Date(order.createdAt),
-        }))
-    );
+    const [orders, setOrders] = useState<AdminOrder[]>([]);
     const [orderError, setOrderError] = useState("");
     const [dailyHistory, setDailyHistory] = useState<DailyHistoryItem[]>([]);
     const [historyDaysFilter, setHistoryDaysFilter] = useState<7 | 30 | 90>(90);
     const [showActiveDaysOnly, setShowActiveDaysOnly] = useState(false);
-    const [screeningBookings, setScreeningBookings] = useState<ScreeningBooking[]>(mockScreeningBookings);
-    const [reservations, setReservations] = useState(mockReservations);
+    const [screeningBookings, setScreeningBookings] = useState<ScreeningBooking[]>([]);
+    const [reservations, setReservations] = useState<any[]>([]);
     const [analytics, setAnalytics] = useState({
         totalOrdersToday: 0,
         revenueToday: 0,
@@ -309,7 +302,7 @@ export default function AdminDashboard() {
                     apiFetch<{ totalOrders: number; revenue: number; totalOrdersToday?: number; revenueToday?: number; activeOrders: number; reservations: number; dailyHistory?: DailyHistoryItem[] }>("/api/admin/analytics?days=90", { token }),
                     apiFetch<Array<{ _id: string; totalAmount: number; status: string; createdAt: string; userId?: { name?: string }; items: Array<{ quantity: number; menuItemId?: { name?: string; price?: number } }> }>>("/api/orders?days=90", { token }),
                     apiFetch<AdminMenuItem[]>("/api/menu", { token, cache: "no-store" }),
-                    apiFetch<typeof mockReservations>("/api/reservations", { token }),
+                    apiFetch<any[]>("/api/reservations", { token }),
                     apiFetch<ScreeningBooking[]>("/api/screening", { token }),
                     apiFetch<DeliveryPartner[]>("/api/admin/delivery-partners", { token }),
                     apiFetch<CouponItem[]>("/api/admin/coupons", { token }),

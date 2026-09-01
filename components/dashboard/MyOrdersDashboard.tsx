@@ -454,49 +454,6 @@ export default function MyOrdersDashboard() {
     );
 }
 
-const mockReservations: Reservation[] = [
-    {
-        id: "r1",
-        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        time: "19:30",
-        guests: 4,
-        tableNumber: 7,
-        status: "confirmed",
-        notes: "Window seating preferred",
-        createdAt: new Date().toISOString(),
-    },
-    {
-        id: "r2",
-        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        time: "13:00",
-        guests: 2,
-        tableNumber: 3,
-        status: "completed",
-        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-];
+const mockReservations: Reservation[] = [];
+const mockScreenings: Screening[] = [];
 
-const mockScreenings: Screening[] = [
-    {
-        id: "s1",
-        name: "Pathaan - Premium Screening",
-        date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        time: "20:00",
-        tickets: 2,
-        status: "booked",
-        seatNumbers: "A5, A6",
-        totalPrice: 800,
-        createdAt: new Date().toISOString(),
-    },
-    {
-        id: "s2",
-        name: "Jawan - Live Screening",
-        date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-        time: "18:00",
-        tickets: 4,
-        status: "completed",
-        seatNumbers: "B1, B2, B3, B4",
-        totalPrice: 1600,
-        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-];
